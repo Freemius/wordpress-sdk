@@ -3702,6 +3702,64 @@
         #endregion
 
         #----------------------------------------------------------------------------------
+        #region Debugging
+        #----------------------------------------------------------------------------------
+
+        /**
+         * Moved back here from the FS_DebugManager class.
+         *
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return array
+         *
+         * @since  2.5.0
+         */
+        static function get_all_modules_sites() {
+            self::get_static_logger()->entrance();
+
+            $sites_by_type = array(
+                WP_FS__MODULE_TYPE_PLUGIN => array(),
+                WP_FS__MODULE_TYPE_THEME  => array(),
+            );
+
+            $module_types = array_keys( $sites_by_type );
+
+            if ( ! is_multisite() ) {
+                foreach ( $module_types as $type ) {
+                    $sites_by_type[ $type ] = self::get_all_sites( $type );
+
+                    foreach ( $sites_by_type[ $type ] as $slug => $install ) {
+                        $sites_by_type[ $type ][ $slug ] = array( $install );
+                    }
+                }
+            } else {
+                $sites = self::get_sites();
+
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+
+                    foreach ( $module_types as $type ) {
+                        $installs = self::get_all_sites( $type, $blog_id );
+
+                        foreach ( $installs as $slug => $install ) {
+                            if ( ! isset( $sites_by_type[ $type ][ $slug ] ) ) {
+                                $sites_by_type[ $type ][ $slug ] = array();
+                            }
+
+                            $install->blog_id = $blog_id;
+
+                            $sites_by_type[ $type ][ $slug ][] = $install;
+                        }
+                    }
+                }
+            }
+
+            return $sites_by_type;
+        }
+
+        #endregion
+
+        #----------------------------------------------------------------------------------
         #region Connectivity Issues
         #----------------------------------------------------------------------------------
 
@@ -22601,7 +22659,7 @@
             $this->_set_account( $user, $this->_site );
 
             $remove_user       = true;
-            $all_modules_sites = FS_DebugManager::get_all_modules_sites();
+            $all_modules_sites = self::get_all_modules_sites();
 
             foreach ( $all_modules_sites as $sites_by_module_type ) {
                 foreach ( $sites_by_module_type as $sites_by_slug ) {

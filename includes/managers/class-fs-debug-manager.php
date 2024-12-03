@@ -158,7 +158,7 @@
         static function _debug_page_render() {
             Freemius::get_static_logger()->entrance();
 
-            $all_modules_sites = self::get_all_modules_sites();
+            $all_modules_sites = Freemius::get_all_modules_sites();
 
             $licenses_by_module_type = self::get_all_licenses_by_module_type();
 
@@ -379,58 +379,6 @@
             }
 
             return $licenses_by_module_type;
-        }
-
-        /**
-         * Moved from the Freemius class.
-         *
-         * @author Leo Fajardo (@leorw)
-         *
-         * @return array
-         *
-         * @since  2.5.0
-         */
-        static function get_all_modules_sites() {
-            Freemius::get_static_logger()->entrance();
-
-            $sites_by_type = array(
-                WP_FS__MODULE_TYPE_PLUGIN => array(),
-                WP_FS__MODULE_TYPE_THEME  => array(),
-            );
-
-            $module_types = array_keys( $sites_by_type );
-
-            if ( ! is_multisite() ) {
-                foreach ( $module_types as $type ) {
-                    $sites_by_type[ $type ] = Freemius::get_all_sites( $type );
-
-                    foreach ( $sites_by_type[ $type ] as $slug => $install ) {
-                        $sites_by_type[ $type ][ $slug ] = array( $install );
-                    }
-                }
-            } else {
-                $sites = Freemius::get_sites();
-
-                foreach ( $sites as $site ) {
-                    $blog_id = Freemius::get_site_blog_id( $site );
-
-                    foreach ( $module_types as $type ) {
-                        $installs = Freemius::get_all_sites( $type, $blog_id );
-
-                        foreach ( $installs as $slug => $install ) {
-                            if ( ! isset( $sites_by_type[ $type ][ $slug ] ) ) {
-                                $sites_by_type[ $type ][ $slug ] = array();
-                            }
-
-                            $install->blog_id = $blog_id;
-
-                            $sites_by_type[ $type ][ $slug ][] = $install;
-                        }
-                    }
-                }
-            }
-
-            return $sites_by_type;
         }
 
         /**
