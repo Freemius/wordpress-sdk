@@ -25809,11 +25809,16 @@
                     if (
                         !is_object($decoded) ||
                         !isset($decoded->success) ||
-                        true !== $decoded->success ||
                         !isset( $decoded->data ) ||
-                        !is_array( $decoded->data )
+                        (!is_array( $decoded->data ) && !is_object( $decoded->data ))
+                        // $decoded->data should be Array in case of success and stdObject in case of failure.
                     ) {
                         return false;
+                    } else if (
+                        isset($decoded->data->error->code) &&
+                        'no_user_for_license' === $decoded->data->error->code
+                    ) {
+                        self::shoot_ajax_failure('no_user_for_license');
                     }
 
                     $result = array_merge( $result, $decoded->data );
