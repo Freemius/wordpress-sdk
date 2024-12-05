@@ -79,7 +79,10 @@
 	$sec_text = fs_text_x_inline( 'sec', 'seconds' );
 ?>
 <?php echo $title_tag_open; ?>
-<?php echo $toggle_button; ?>
+<?php
+	$debug_table_toggle_button_template_vars = array( 'is_open' => false );
+	$debug_table_toggle_button               = fs_require_template( 'debug/partials/toggle-button.php', $debug_table_toggle_button_template_vars );
+?>
 <?php fs_esc_html_echo_inline('Scheduled Crons') ?>
 <?php echo $title_tag_close; ?>
 <table class="widefat">

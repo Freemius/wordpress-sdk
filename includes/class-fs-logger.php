@@ -709,6 +709,10 @@ KEY `type` (`type` ASC))" );
 			WP_Filesystem();
 			global $wp_filesystem;
 
+			if ( ! $wp_filesystem->is_writable( dirname( $file_path ) ) ) {
+				return false;
+			}
+
 			$content = '';
 
 			foreach ( $query_results as $row ) {

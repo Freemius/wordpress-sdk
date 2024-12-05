@@ -26,12 +26,8 @@
 
     $auto_off_timestamp = wp_next_scheduled( 'fs_debug_turn_off_logging_hook' ) * 1000;
 
-    function fs_get_debug_table_toggle_button( $open = false ) {
-        return '
-        <button class="fs-debug-table-toggle-button" aria-expanded="' . ( $open ? 'true' : 'false' ) . '">
-            <span class="fs-debug-table-toggle-icon">' . ( $open ? '▼' : '▶' ) . '</span>
-        </button>';
-    }
+    $debug_table_toggle_button_template_vars = array( 'is_open' => true );
+    $debug_table_toggle_button               = fs_get_template( 'debug/partials/toggle-button.php', $debug_table_toggle_button_template_vars );
 ?>
 <h1><?php echo fs_text_inline( 'Freemius Debug' ) . ' - ' . fs_text_inline( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 <div>
@@ -296,7 +292,7 @@
     </tbody>
 </table>
 <h2>
-    <?php echo fs_get_debug_table_toggle_button( true ) ?>
+    <?php echo $debug_table_toggle_button ?>
     <?php fs_esc_html_echo_x_inline( 'SDK Versions', 'as software development kit versions', 'sdk-versions' ) ?>
 </h2>
 <table id="fs_sdks" class="widefat">
@@ -334,7 +330,7 @@
     <?php $modules = fs_get_entities( $fs_options->get_option( $module_type . 's' ), FS_Plugin::get_class_name() ) ?>
     <?php if ( is_array( $modules ) && count( $modules ) > 0 ) : ?>
         <h2>
-            <?php echo fs_get_debug_table_toggle_button( true ) ?>
+            <?php echo $debug_table_toggle_button ?>
             <?php echo esc_html( ( WP_FS__MODULE_TYPE_PLUGIN == $module_type ) ? fs_text_inline( 'Plugins',
                 'plugins' ) : fs_text_inline( 'Themes', 'themes' ) ) ?>
         </h2>
@@ -471,7 +467,7 @@
     ?>
     <?php if ( is_array( $sites_map ) && count( $sites_map ) > 0 ) : ?>
         <h2>
-            <?php echo fs_get_debug_table_toggle_button( true ) ?>
+            <?php echo $debug_table_toggle_button ?>
             <?php echo esc_html( sprintf(
             /* translators: %s: 'plugin' or 'theme' */
                 fs_text_inline( '%s Installs', 'module-installs' ),
@@ -589,7 +585,7 @@
 ?>
 <?php foreach ( $addons as $plugin_id => $plugin_addons ) : ?>
     <h2>
-        <?php echo fs_get_debug_table_toggle_button( true ) ?>
+        <?php echo $debug_table_toggle_button ?>
         <?php echo esc_html( sprintf( fs_text_inline( 'Add Ons of module %s', 'addons-of-x' ), $plugin_id ) ) ?>
     </h2>
     <table id="fs_addons" class="widefat">
@@ -651,7 +647,7 @@
 ?>
 <?php if ( is_array( $users ) && 0 < count( $users ) ) : ?>
     <h2>
-        <?php echo fs_get_debug_table_toggle_button( true ) ?>
+        <?php echo $debug_table_toggle_button ?>
         <?php fs_esc_html_echo_inline( 'Users' ) ?>
     </h2>
     <table id="fs_users" class="widefat">
@@ -703,7 +699,7 @@
     $licenses = $VARS[ $module_type . '_licenses' ] ?>
     <?php if ( is_array( $licenses ) && count( $licenses ) > 0 ) : ?>
         <h2>
-            <?php echo fs_get_debug_table_toggle_button( true ) ?>
+            <?php echo $debug_table_toggle_button ?>
             <?php echo esc_html( sprintf( fs_text_inline( '%s Licenses', 'module-licenses' ), ( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) ) ) ) ?>
         </h2>
         <table id="fs_<?php echo $module_type ?>_licenses" class="widefat">
@@ -745,11 +741,7 @@
     <?php endif ?>
 <?php endforeach ?>
 <?php
-    $page_params = array(
-        'title_tag'     => 'h2',
-        'toggle_button' => fs_get_debug_table_toggle_button(),
-    );
-
+    $page_params = array( 'title_tag' => 'h2' );
     fs_require_template( 'debug/scheduled-crons.php', $page_params );
 ?>
 <?php if ( FS_Logger::is_storage_logging_on() ) : ?>
@@ -938,9 +930,9 @@
                 button.attr( 'aria-expanded', isExpanded );
                 button.find( '.fs-debug-table-toggle-icon' ).text( isExpanded ? '▼' : '▶' );
                 table.css( {
-                    display    : isExpanded ? 'table' : 'block',
-                    borderWidth: isExpanded ? '1px' : '0',
-                    maxHeight  : isExpanded ? 'auto' : '0'
+                    display          : isExpanded ? 'table' : 'block',
+                    borderBottomWidth: isExpanded ? '1px' : '0',
+                    maxHeight        : isExpanded ? 'auto' : '0',
                 } );
             };
 
