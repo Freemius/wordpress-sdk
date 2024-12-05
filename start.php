@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.10.0';
+	$this_sdk_version = '2.10.1';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -108,11 +108,14 @@
         $is_current_sdk_from_parent_theme = $file_path == $themes_directory . '/' . get_template() . '/' . $theme_candidate_sdk_basename . '/' . basename( $file_path );
     }
 
+    $theme_name = null;
     if ( $is_current_sdk_from_active_theme ) {
-        $this_sdk_relative_path = '../' . $themes_directory_name . '/' . get_stylesheet() . '/' . $theme_candidate_sdk_basename;
+        $theme_name             = get_stylesheet();
+        $this_sdk_relative_path = '../' . $themes_directory_name . '/' . $theme_name . '/' . $theme_candidate_sdk_basename;
         $is_theme               = true;
     } else if ( $is_current_sdk_from_parent_theme ) {
-        $this_sdk_relative_path = '../' . $themes_directory_name . '/' . get_template() . '/' . $theme_candidate_sdk_basename;
+        $theme_name             = get_template();
+        $this_sdk_relative_path = '../' . $themes_directory_name . '/' . $theme_name . '/' . $theme_candidate_sdk_basename;
         $is_theme               = true;
     } else {
         $this_sdk_relative_path = plugin_basename( $fs_root_path );
@@ -202,7 +205,7 @@
 	) {
 		if ( $is_theme ) {
             // Saving relative path and not only directory name as it could be a subfolder
-            $plugin_path = $this_sdk_relative_path;
+            $plugin_path = $theme_name;
 		} else {
 			$plugin_path = plugin_basename( fs_find_direct_caller_plugin_file( $file_path ) );
 		}
