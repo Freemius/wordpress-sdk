@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.10.0';
+	$this_sdk_version = '2.10.1';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -108,14 +108,36 @@
         $is_current_sdk_from_parent_theme = $file_path == $themes_directory . '/' . get_template() . '/' . $theme_candidate_sdk_basename . '/' . basename( $file_path );
     }
 
+    $theme_name = null;
     if ( $is_current_sdk_from_active_theme ) {
-        $this_sdk_relative_path = '../' . $themes_directory_name . '/' . get_stylesheet() . '/' . $theme_candidate_sdk_basename;
+        $theme_name             = get_stylesheet();
+        $this_sdk_relative_path = '../' . $themes_directory_name . '/' . $theme_name . '/' . $theme_candidate_sdk_basename;
         $is_theme               = true;
     } else if ( $is_current_sdk_from_parent_theme ) {
-        $this_sdk_relative_path = '../' . $themes_directory_name . '/' . get_template() . '/' . $theme_candidate_sdk_basename;
+        $theme_name             = get_template();
+        $this_sdk_relative_path = '../' . $themes_directory_name . '/' . $theme_name . '/' . $theme_candidate_sdk_basename;
         $is_theme               = true;
     } else {
-        $this_sdk_relative_path = plugin_basename( $fs_root_path );
+        /**
+         * If the plugin is not active we cannot use plugin_basename() to get the plugin directory name.
+         * This snippet retrieves the plugin directory name by comparing the path of the current file with the path of installed plugins.
+         */
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        $all_plugins = get_plugins();
+
+        foreach ( $all_plugins as $plugin_path => $plugin_info ) {
+            $plugin_directory_path =  dirname( realpath( WP_PLUGIN_DIR . '/' . $plugin_path ) );
+            // If $fs_root_path starts with $plugin_directory_name, then we found the plugin that included this file.
+            if ( 0 === strpos( $fs_root_path, $plugin_directory_path . '/' ) ) {
+                $plugin_directory_name = basename( $plugin_directory_path );
+                // Take the final part of $fs_root_path starting from $plugin_directory_name
+                $this_sdk_relative_path = $plugin_directory_name . '/' . substr( $fs_root_path, strlen( $plugin_directory_path ) + 1 );
+                break;
+            }
+        }
+
         $is_theme               = false;
     }
 
@@ -202,7 +224,7 @@
 	) {
 		if ( $is_theme ) {
             // Saving relative path and not only directory name as it could be a subfolder
-            $plugin_path = $this_sdk_relative_path;
+            $plugin_path = $theme_name;
 		} else {
 			$plugin_path = plugin_basename( fs_find_direct_caller_plugin_file( $file_path ) );
 		}
