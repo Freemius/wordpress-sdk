@@ -118,7 +118,26 @@
         $this_sdk_relative_path = '../' . $themes_directory_name . '/' . $theme_name . '/' . $theme_candidate_sdk_basename;
         $is_theme               = true;
     } else {
-        $this_sdk_relative_path = plugin_basename( $fs_root_path );
+        /**
+         * If the plugin is not active we cannot use plugin_basename() to get the plugin directory name.
+         * This snippet retrieves the plugin directory name by comparing the path of the current file with the path of installed plugins.
+         */
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        $all_plugins = get_plugins();
+
+        foreach ( $all_plugins as $plugin_path => $plugin_info ) {
+            $plugin_directory_path =  dirname( realpath( WP_PLUGIN_DIR . '/' . $plugin_path ) );
+            // If $fs_root_path starts with $plugin_directory_name, then we found the plugin that included this file.
+            if ( 0 === strpos( $fs_root_path, $plugin_directory_path . '/' ) ) {
+                $plugin_directory_name = basename( $plugin_directory_path );
+                // Take the final part of $fs_root_path starting from $plugin_directory_name
+                $this_sdk_relative_path = $plugin_directory_name . '/' . substr( $fs_root_path, strlen( $plugin_directory_path ) + 1 );
+                break;
+            }
+        }
+
         $is_theme               = false;
     }
 
