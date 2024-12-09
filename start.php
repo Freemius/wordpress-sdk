@@ -118,27 +118,23 @@
         $this_sdk_relative_path = '../' . $themes_directory_name . '/' . $theme_name . '/' . $theme_candidate_sdk_basename;
         $is_theme               = true;
     } else {
-        /**
-         * If the plugin is not active we cannot use plugin_basename() to get the plugin directory name.
-         * This snippet retrieves the plugin directory name by comparing the path of the current file with the path of installed plugins.
-         */
-        if (!function_exists('get_plugins')) {
-            require_once ABSPATH . 'wp-admin/includes/plugin.php';
-        }
-        $all_plugins = get_plugins();
-
-        foreach ( $all_plugins as $plugin_path => $plugin_info ) {
-            $plugin_directory_path =  dirname( realpath( WP_PLUGIN_DIR . '/' . $plugin_path ) );
-            // If $fs_root_path starts with $plugin_directory_name, then we found the plugin that included this file.
-            if ( 0 === strpos( $fs_root_path, $plugin_directory_path . '/' ) ) {
-                $plugin_directory_name = basename( $plugin_directory_path );
-                // Take the final part of $fs_root_path starting from $plugin_directory_name
-                $this_sdk_relative_path = $plugin_directory_name . '/' . substr( $fs_root_path, strlen( $plugin_directory_path ) + 1 );
-                break;
-            }
-        }
-
+        $this_sdk_relative_path = plugin_basename( $fs_root_path );
         $is_theme               = false;
+
+        /**
+         * If this file was included from another plugin with lower SDK version, and if this plugin is symlinked, then we need to get the actual plugin path,
+         * as the value right now will be wrong, it will only remove the directory separator from the file_path.
+         *
+         * The check of `fs_find_direct_caller_plugin_file` determines that this file was indeed included by a different plugin than the main plugin.
+         */
+        if ( DIRECTORY_SEPARATOR . $this_sdk_relative_path === $fs_root_path && function_exists( 'fs_find_direct_caller_plugin_file' ) ) {
+            $original_plugin_dir_name = dirname( fs_find_direct_caller_plugin_file( $file_path ) );
+
+            // Remove everything before the original plugin directory name.
+            $this_sdk_relative_path = substr( $this_sdk_relative_path, strpos( $this_sdk_relative_path, $original_plugin_dir_name ) );
+
+            unset( $original_plugin_dir_name );
+	    }
     }
 
 	if ( ! isset( $fs_active_plugins ) ) {
