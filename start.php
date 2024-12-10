@@ -375,7 +375,7 @@
 		return;
 	}
 
-	if ( version_compare( $this_sdk_version, $fs_active_plugins->newest->version, '<' ) ) {
+    if ( isset( $fs_active_plugins->newest ) && version_compare( $this_sdk_version, $fs_active_plugins->newest->version, '<' ) ) {
 		$newest_sdk = $fs_active_plugins->plugins[ $fs_active_plugins->newest->sdk_path ];
 
 		$plugins_or_theme_dir_path = ( ! isset( $newest_sdk->type ) || 'theme' !== $newest_sdk->type ) ?
