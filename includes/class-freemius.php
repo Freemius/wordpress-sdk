@@ -1661,9 +1661,9 @@
             if (
                 $this->is_user_in_admin() &&
                 $this->is_parallel_activation() &&
-                $this->_premium_plugin_basename !== $this->premium_plugin_basename_from_parallel_activation
+                $this->_premium_plugin_basename !== $this->_premium_plugin_basename_from_parallel_activation
             ) {
-                $this->_premium_plugin_basename = $this->premium_plugin_basename_from_parallel_activation;
+                $this->_premium_plugin_basename = $this->_premium_plugin_basename_from_parallel_activation;
 
                 register_activation_hook(
                     dirname( $this->_plugin_dir_path ) . '/' . $this->_premium_plugin_basename,
@@ -1681,7 +1681,7 @@
          * @return bool
          */
         private function is_parallel_activation() {
-            return ! empty( $this->premium_plugin_basename_from_parallel_activation );
+            return ! empty( $this->_premium_plugin_basename_from_parallel_activation );
         }
 
         /**
@@ -5205,7 +5205,7 @@
                     throw new Exception('You need to specify the premium version basename to enable parallel version activation.');
                 }
 
-                $this->premium_plugin_basename_from_parallel_activation = $premium_basename;
+                $this->_premium_plugin_basename_from_parallel_activation = $premium_basename;
 
                 if ( is_plugin_active( $premium_basename ) ) {
                     $is_premium = true;

@@ -231,6 +231,7 @@
 
             foreach ( $sandbox_wp_environment_domains as $domain) {
                 if (
+                    ( $host === $domain ) ||
                     fs_ends_with( $host, '.' . $domain ) ||
                     fs_ends_with( $host, '-' . $domain )
                 ) {
