@@ -25478,7 +25478,7 @@
                 $img_dir = WP_FS__DIR_IMG;
 
                 // Locate the main assets folder.
-                if ( 1 < count( $fs_active_plugins->plugins ) ) {
+                if ( ! empty( $fs_active_plugins->plugins ) ) {
                     $plugin_or_theme_img_dir = ( $this->is_plugin() ? WP_PLUGIN_DIR : get_theme_root( get_stylesheet() ) );
 
                     foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) {
