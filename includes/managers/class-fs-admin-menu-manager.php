@@ -700,21 +700,27 @@
 			}
 
 			$menu_slug   = $menu['menu'][2];
-			$parent_slug = 'admin.php';
+			$parent_slug = isset( $menu['parent_slug'] ) ?
+				$menu['parent_slug'] :
+				'admin.php';
 
-			/**
-			 * This line and the `if` block below it is based on the `menu_page_url()` function of WordPress.
-			 *
-			 * @author Leo Fajardo (@leorw)
-			 * @since 2.7.4
-			 */
-			global $_parent_pages;
+			if ( fs_apply_filter( $this->_module_unique_affix, 'enable_cpt_advanced_menu_logic', false ) ) {
+				$parent_slug = 'admin.php';
 
-			if ( ! empty( $_parent_pages[ $menu_slug ] ) ) {
-				$_parent_slug = $_parent_pages[ $menu_slug ];
-				$parent_slug  = isset( $_parent_pages[ $_parent_slug ] ) ?
-					$parent_slug :
-					$menu['parent_slug'];
+				/**
+				 * This line and the `if` block below it are based on the `menu_page_url()` function of WordPress.
+				 *
+				 * @author Leo Fajardo (@leorw)
+				 * @since 2.10.2
+				 */
+				global $_parent_pages;
+
+				if ( ! empty( $_parent_pages[ $menu_slug ] ) ) {
+					$_parent_slug = $_parent_pages[ $menu_slug ];
+					$parent_slug  = isset( $_parent_pages[ $_parent_slug ] ) ?
+						$parent_slug :
+						$menu['parent_slug'];
+				}
 			}
 
 			return admin_url(
