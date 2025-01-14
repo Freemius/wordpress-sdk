@@ -542,7 +542,7 @@
 
             global $wp_current_filter;
 
-            if ( ! empty( $wp_current_filter ) && 'upgrader_process_complete' === $wp_current_filter[0] ) {
+            if ( ! empty( $wp_current_filter ) && in_array( 'upgrader_process_complete', $wp_current_filter ) ) {
                 return $transient_data;
             }
 
