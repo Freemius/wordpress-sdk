@@ -723,7 +723,7 @@
                                         <a class="button<?php echo ( ! $has_license ? ' button-primary' : '' ) ?> activate-license-trigger <?php echo $fs->get_unique_affix() ?>" href="#"><?php echo $activate_license_button_text ?></a>
                                     <?php endif ?>
                                 <?php endif ?>
-								<input class="fs-search" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Search by address', 'search-by-address', $slug ) ?>..."><span class="dashicons dashicons-search"></span>
+								<input class="fs-search" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Search by address', 'search-by-address', $slug ) ?>..." autocomplete="off"><span class="dashicons dashicons-search"></span>
 							</div>
 							<div class="inside">
                                 <div id="" class="fs-scrollable-table">
