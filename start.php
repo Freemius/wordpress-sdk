@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.11.0';
+	$this_sdk_version = '2.11.0.1';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -128,12 +128,16 @@
          * The check of `fs_find_direct_caller_plugin_file` determines that this file was indeed included by a different plugin than the main plugin.
          */
         if ( DIRECTORY_SEPARATOR . $this_sdk_relative_path === $fs_root_path && function_exists( 'fs_find_direct_caller_plugin_file' ) ) {
-            $original_plugin_dir_name = dirname( fs_find_direct_caller_plugin_file( $file_path ) );
+            $direct_caller_plugin_file = fs_find_direct_caller_plugin_file( $file_path );
 
-            // Remove everything before the original plugin directory name.
-            $this_sdk_relative_path = substr( $this_sdk_relative_path, strpos( $this_sdk_relative_path, $original_plugin_dir_name ) );
+            if ( ! empty( $direct_caller_plugin_file ) ) {
+                $original_plugin_dir_name = dirname( $direct_caller_plugin_file );
 
-            unset( $original_plugin_dir_name );
+                // Remove everything before the original plugin directory name.
+                $this_sdk_relative_path = substr( $this_sdk_relative_path, strpos( $this_sdk_relative_path, $original_plugin_dir_name ) );
+
+                unset( $original_plugin_dir_name );
+            }
         }
     }
 
