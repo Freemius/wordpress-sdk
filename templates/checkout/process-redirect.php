@@ -51,6 +51,11 @@
 
         $loader.show();
 
+        // This remains compatible with the same filter in /templates/checkout/frame.php.
+        (<?php echo $fs->apply_filters('checkout/purchaseCompleted', 'function (data) {
+            console.log("checkout", "purchaseCompleted");
+        }'); ?>)(data.purchaseData);
+
         switch ( action ) {
             case 'install':
                 processInstall( data );
