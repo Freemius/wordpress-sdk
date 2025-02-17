@@ -741,7 +741,7 @@
     <?php endif ?>
 <?php endforeach ?>
 <?php
-    $page_params = array( 'title_tag' => 'h2' );
+    $page_params = array( 'is_fs_debug_page' => true );
     fs_require_template( 'debug/scheduled-crons.php', $page_params );
 ?>
 <?php if ( FS_Logger::is_storage_logging_on() ) : ?>

@@ -636,7 +636,17 @@ KEY `type` (`type` ASC))" );
 			$offset = 0,
 			$order = false
 		) {
-			global $wpdb;
+            if ( empty( $filename ) ) {
+                $filename = 'fs-logs-' . date( 'Y-m-d_H-i-s', WP_FS__SCRIPT_START_TIME ) . '.csv';
+            }
+
+            $upload_dir = wp_upload_dir();
+            $filepath   = rtrim( $upload_dir['path'], '/' ) . "/{$filename}";
+
+            WP_Filesystem();
+            if ( ! $GLOBALS['wp_filesystem']->is_writable( dirname( $filepath ) ) ) {
+                return false;
+            }
 
 			$query = self::build_db_logs_query(
 				$filters,
@@ -645,12 +655,6 @@ KEY `type` (`type` ASC))" );
 				$order,
 				true
 			);
-
-			$upload_dir = wp_upload_dir();
-			if ( empty( $filename ) ) {
-				$filename = 'fs-logs-' . date( 'Y-m-d_H-i-s', WP_FS__SCRIPT_START_TIME ) . '.csv';
-			}
-			$filepath = rtrim( $upload_dir['path'], '/' ) . "/{$filename}";
 
 			$columns = '';
 			for ( $i = 0, $len = count( self::$_log_columns ); $i < $len; $i ++ ) {
@@ -663,15 +667,13 @@ KEY `type` (`type` ASC))" );
 
 			$query = "SELECT {$columns} UNION ALL " . $query;
 
-			$result = $wpdb->get_results( $query );
+			$result = $GLOBALS['wpdb']->get_results( $query );
 
 			if ( false === $result ) {
 				return false;
 			}
 
-			$write_file = self::write_csv_to_filesystem( $filepath, $result );
-
-			if ( false === $write_file ) {
+			if ( ! self::write_csv_to_filesystem( $filepath, $result ) ) {
 				return false;
 			}
 
@@ -706,13 +708,6 @@ KEY `type` (`type` ASC))" );
 				return false;
 			}
 
-			WP_Filesystem();
-			global $wp_filesystem;
-
-			if ( ! $wp_filesystem->is_writable( dirname( $file_path ) ) ) {
-				return false;
-			}
-
 			$content = '';
 
 			foreach ( $query_results as $row ) {
@@ -722,7 +717,7 @@ KEY `type` (`type` ASC))" );
 				$content  .= implode( "\t", $row_data ) . "\n";
 			}
 
-			if ( ! $wp_filesystem->put_contents( $file_path, $content, FS_CHMOD_FILE ) ) {
+			if ( ! $GLOBALS['wp_filesystem']->put_contents( $file_path, $content, FS_CHMOD_FILE ) ) {
 				return false;
 			}
 
