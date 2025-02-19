@@ -636,17 +636,17 @@ KEY `type` (`type` ASC))" );
 			$offset = 0,
 			$order = false
 		) {
-            if ( empty( $filename ) ) {
-                $filename = 'fs-logs-' . date( 'Y-m-d_H-i-s', WP_FS__SCRIPT_START_TIME ) . '.csv';
-            }
+			if ( empty( $filename ) ) {
+				$filename = 'fs-logs-' . date( 'Y-m-d_H-i-s', WP_FS__SCRIPT_START_TIME ) . '.csv';
+			}
 
-            $upload_dir = wp_upload_dir();
-            $filepath   = rtrim( $upload_dir['path'], '/' ) . "/{$filename}";
+			$upload_dir = wp_upload_dir();
+			$filepath   = rtrim( $upload_dir['path'], '/' ) . "/{$filename}";
 
-            WP_Filesystem();
-            if ( ! $GLOBALS['wp_filesystem']->is_writable( dirname( $filepath ) ) ) {
-                return false;
-            }
+			WP_Filesystem();
+			if ( ! $GLOBALS['wp_filesystem']->is_writable( dirname( $filepath ) ) ) {
+				return false;
+			}
 
 			$query = self::build_db_logs_query(
 				$filters,
