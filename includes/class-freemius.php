@@ -18745,7 +18745,7 @@
          * @return bool
          */
         function is_pricing_page_visible() {
-            return (
+            $visible = (
                 // Has at least one paid plan.
                 $this->has_paid_plan() &&
                 // Didn't ask to hide the pricing page.
@@ -18753,6 +18753,8 @@
                 // Don't have a valid active license or has more than one plan.
                 ( ! $this->is_paying() || ! $this->is_single_plan( true ) )
             );
+
+            return $this->apply_filters( 'is_pricing_page_visible', $visible );
         }
 
         /**
