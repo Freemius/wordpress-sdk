@@ -25,9 +25,6 @@
     $is_multisite = is_multisite();
 
     $auto_off_timestamp = wp_next_scheduled( 'fs_debug_turn_off_logging_hook' ) * 1000;
-
-    $debug_table_toggle_button_template_vars = array( 'is_open' => true );
-    $debug_table_toggle_button               = fs_get_template( 'debug/partials/toggle-button.php', $debug_table_toggle_button_template_vars );
 ?>
 <h1><?php echo fs_text_inline( 'Freemius Debug' ) . ' - ' . fs_text_inline( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 <div>
@@ -292,10 +289,12 @@
     </tbody>
 </table>
 <h2>
-    <?php echo $debug_table_toggle_button ?>
+    <button class="fs-debug-table-toggle-button" aria-expanded="true">
+        <span class="fs-debug-table-toggle-icon">▼</span>
+    </button>
     <?php fs_esc_html_echo_x_inline( 'SDK Versions', 'as software development kit versions', 'sdk-versions' ) ?>
 </h2>
-<table id="fs_sdks" class="widefat">
+<table id="fs_sdks" class="widefat fs-debug-table">
     <thead>
     <tr>
         <th><?php fs_esc_html_echo_x_inline( 'Version', 'product version' ) ?></th>
@@ -330,11 +329,12 @@
     <?php $modules = fs_get_entities( $fs_options->get_option( $module_type . 's' ), FS_Plugin::get_class_name() ) ?>
     <?php if ( is_array( $modules ) && count( $modules ) > 0 ) : ?>
         <h2>
-            <?php echo $debug_table_toggle_button ?>
-            <?php echo esc_html( ( WP_FS__MODULE_TYPE_PLUGIN == $module_type ) ? fs_text_inline( 'Plugins',
-                'plugins' ) : fs_text_inline( 'Themes', 'themes' ) ) ?>
+            <button class="fs-debug-table-toggle-button" aria-expanded="true">
+                <span class="fs-debug-table-toggle-icon">▼</span>
+            </button>
+            <?php echo esc_html( ( WP_FS__MODULE_TYPE_PLUGIN == $module_type ) ? fs_text_inline( 'Plugins', 'plugins' ) : fs_text_inline( 'Themes', 'themes' ) ) ?>
         </h2>
-        <table id="fs_<?php echo $module_type ?>" class="widefat">
+        <table id="fs_<?php echo $module_type ?>" class="widefat fs-debug-table">
             <thead>
             <tr>
                 <th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
@@ -467,14 +467,16 @@
     ?>
     <?php if ( is_array( $sites_map ) && count( $sites_map ) > 0 ) : ?>
         <h2>
-            <?php echo $debug_table_toggle_button ?>
+            <button class="fs-debug-table-toggle-button" aria-expanded="true">
+                <span class="fs-debug-table-toggle-icon">▼</span>
+            </button>
             <?php echo esc_html( sprintf(
             /* translators: %s: 'plugin' or 'theme' */
                 fs_text_inline( '%s Installs', 'module-installs' ),
                 ( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) )
             ) ) ?> / <?php fs_esc_html_echo_x_inline( 'Sites', 'like websites', 'sites' ) ?>
         </h2>
-        <table id="fs_<?php echo $module_type ?>_installs" class="widefat">
+        <table id="fs_<?php echo $module_type ?>_installs" class="widefat fs-debug-table">
             <thead>
             <tr>
                 <th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
@@ -585,10 +587,12 @@
 ?>
 <?php foreach ( $addons as $plugin_id => $plugin_addons ) : ?>
     <h2>
-        <?php echo $debug_table_toggle_button ?>
+        <button class="fs-debug-table-toggle-button" aria-expanded="true">
+            <span class="fs-debug-table-toggle-icon">▼</span>
+        </button>
         <?php echo esc_html( sprintf( fs_text_inline( 'Add Ons of module %s', 'addons-of-x' ), $plugin_id ) ) ?>
     </h2>
-    <table id="fs_addons" class="widefat">
+    <table id="fs_addons" class="widefat fs-debug-table">
         <thead>
         <tr>
             <th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
@@ -647,10 +651,12 @@
 ?>
 <?php if ( is_array( $users ) && 0 < count( $users ) ) : ?>
     <h2>
-        <?php echo $debug_table_toggle_button ?>
+        <button class="fs-debug-table-toggle-button" aria-expanded="true">
+            <span class="fs-debug-table-toggle-icon">▼</span>
+        </button>
         <?php fs_esc_html_echo_inline( 'Users' ) ?>
     </h2>
-    <table id="fs_users" class="widefat">
+    <table id="fs_users" class="widefat fs-debug-table">
         <thead>
         <tr>
             <th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
@@ -699,10 +705,12 @@
     $licenses = $VARS[ $module_type . '_licenses' ] ?>
     <?php if ( is_array( $licenses ) && count( $licenses ) > 0 ) : ?>
         <h2>
-            <?php echo $debug_table_toggle_button ?>
+            <button class="fs-debug-table-toggle-button" aria-expanded="true">
+                <span class="fs-debug-table-toggle-icon">▼</span>
+            </button>
             <?php echo esc_html( sprintf( fs_text_inline( '%s Licenses', 'module-licenses' ), ( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) ) ) ) ?>
         </h2>
-        <table id="fs_<?php echo $module_type ?>_licenses" class="widefat">
+        <table id="fs_<?php echo $module_type ?>_licenses" class="widefat fs-debug-table">
             <thead>
             <tr>
                 <th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
@@ -921,26 +929,21 @@
 <script type="text/javascript">
     // JavaScript to toggle the visibility of the table body and change the caret icon
     jQuery( document ).ready( function ( $ ) {
-        $( '.fs-debug-table-toggle-button' ).each( function () {
-            const button = $( this );
-            const table = button.closest( 'h2' ).next( 'table' );
-            table.css( 'overflow', 'hidden' );
+        $( '.fs-debug-table-toggle-button' ).on( 'click', function () {
+            const button     = $( this );
+            const table      = button.closest( 'h2' ).next( 'table' );
+            const isExpanded = ( 'false' === button.attr( 'aria-expanded' ) );
 
-            const toggle = function ( isExpanded ) {
-                button.attr( 'aria-expanded', isExpanded );
-                button.find( '.fs-debug-table-toggle-icon' ).text( isExpanded ? '▼' : '▶' );
-                table.css( {
-                    display          : isExpanded ? 'table' : 'block',
-                    borderBottomWidth: isExpanded ? '1px' : '0',
-                    maxHeight        : isExpanded ? 'auto' : '0',
-                } );
-            };
+            button.attr( 'aria-expanded', isExpanded );
+            button.find( '.fs-debug-table-toggle-icon' ).text( isExpanded ? '▼' : '▶' );
 
-            button.on( 'click', function () {
-                toggle( button.attr( 'aria-expanded' ) === 'false' );
+            table.css( {
+                display          : isExpanded ? 'table' : 'block',
+                borderBottomWidth: isExpanded ? '1px' : '0',
+                maxHeight        : isExpanded ? 'auto' : '0',
             } );
-
-            toggle( button.attr( 'aria-expanded' ) === 'true' );
         } );
+
+        $( '.fs-debug-table-toggle-button:last' ).click();
     } );
 </script>

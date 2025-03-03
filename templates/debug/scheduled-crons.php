@@ -77,16 +77,15 @@
 ?>
 <?php if ( $is_fs_debug_page ) : ?>
 <h2>
-    <?php
-        $debug_table_toggle_button_template_vars = array( 'is_open' => false );
-        fs_require_template( 'debug/partials/toggle-button.php', $debug_table_toggle_button_template_vars );
-    ?>
+    <button class="fs-debug-table-toggle-button" aria-expanded="true">
+        <span class="fs-debug-table-toggle-icon">▼</span>
+    </button>
     <?php fs_esc_html_echo_inline( 'Scheduled Crons' ) ?>
 </h2>
 <?php else : ?>
 <h1><?php fs_esc_html_echo_inline( 'Scheduled Crons' ) ?></h1>
 <?php endif ?>
-<table class="widefat">
+<table class="widefat fs-debug-table">
 	<thead>
 	<tr>
 		<th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
