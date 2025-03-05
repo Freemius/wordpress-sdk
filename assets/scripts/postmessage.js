@@ -36,8 +36,11 @@
                 _init();
 
                 // Automatically receive forward messages.
-                FS.PostMessage.receiveOnce('forward', function (data){
-                    window.location = data.url;
+                FS.PostMessage.receiveOnce('forward', function (data) {
+                    // Sanitize the URL.
+                    if (data.url && (data.url.startsWith('http://') || data.url.startsWith('https://'))) {
+                        window.location = data.url;
+                    }
                 });
 
                 iframes = iframes || [];
@@ -52,6 +55,11 @@
             },
             init_child : function ()
             {
+                // Don't initialize as children if we cannot detect parent.
+                if (!_hasParent) {
+                    return;
+                }
+
                 this.init(_parent_subdomain);
 
                 _is_child = true;
