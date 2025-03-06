@@ -4495,9 +4495,9 @@
             }
 
             if ( $this->has_api_connectivity() ) {
-                if ( self::is_cron() ) {
-                    $this->hook_callback_to_sync_cron();
-                } else if ( $this->is_user_in_admin() ) {
+                $this->hook_callback_to_sync_cron();
+
+                if ( $this->is_user_in_admin() ) {
                     /**
                      * Schedule daily data sync cron if:
                      *
