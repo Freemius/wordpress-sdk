@@ -336,6 +336,9 @@
                         </label>
                     </div>
                 </div>
+                <div id="fs_privacy_license_owner">
+                    <span class="fs-message"><?php fs_echo_inline( "A user has not yet been associated with the license, which is necessary to prevent unauthorized activation. To assign the license to your user, you agree to share your WP user's full name and email address." ) ?></span>
+                </div>
 			<?php endif ?>
 			<?php if ( $is_network_level_activation ) : ?>
             <?php
@@ -916,6 +919,7 @@
 					if ('' === key) {
 						$primaryCta.attr('disabled', 'disabled');
                         $marketingOptin.hide();
+                        toggleSensitiveDataFields(false);
 					} else {
                         $primaryCta.prop('disabled', false);
 
@@ -923,6 +927,7 @@
                             fetchIsMarketingAllowedFlagAndToggleOptin();
                         } else {
                             $marketingOptin.hide();
+                            toggleSensitiveDataFields(false);
                         }
 					}
 
@@ -958,8 +963,34 @@
 		//region GDPR
 		//--------------------------------------------------------------------------------
         var isMarketingAllowedByLicense = {},
+            licenseOwnerIdByLicense = {},
             $marketingOptin = $('#fs_marketing_optin'),
+            $privacyLicenseOwner = $('#fs_privacy_license_owner'),
+            $fieldFirstName = document.querySelector("input[name='user_firstname']"),
+            $fieldLastName = document.querySelector("input[name='user_lastname']"),
+            $fieldEmail = document.querySelector("input[name='user_email']"),
+            $form = $fieldFirstName.parentNode,
             previousLicenseKey = null;
+
+        // A function to enable/disable sensitive data fields
+        var toggleSensitiveDataFields = function (shouldSendSensitiveData) {
+            if (shouldSendSensitiveData) {
+                $privacyLicenseOwner.show();
+                // Add fields to the form if they are not already there.
+                $form.appendChild($fieldFirstName);
+                $form.appendChild($fieldLastName);
+                $form.appendChild($fieldEmail);
+            } else {
+                $privacyLicenseOwner.hide();
+                // Remove fields from the form if they are there.
+                if ($fieldFirstName.parentNode === $form)
+                    $form.removeChild($fieldFirstName);
+                if ($fieldLastName.parentNode === $form)
+                    $form.removeChild($fieldLastName);
+                if ($fieldEmail.parentNode === $form)
+                    $form.removeChild($fieldEmail);
+            }
+        };
 
 		if (requireLicenseKey) {
 
@@ -981,6 +1012,12 @@
                             $marketingOptin.hide();
                             $primaryCta.focus();
                         }
+
+                        if (null == licenseOwnerIdByLicense[licenseKey]){
+                            toggleSensitiveDataFields(true);
+                        } else {
+                            toggleSensitiveDataFields(false);
+                        }
                     },
                     /**
                      * @author Leo Fajardo (@leorw)
@@ -991,6 +1028,7 @@
 
                         if (licenseKey.length < 32) {
                             $marketingOptin.hide();
+                            toggleSensitiveDataFields(false);
                             return;
                         }
 
@@ -1000,6 +1038,7 @@
                         }
 
                         $marketingOptin.hide();
+                        toggleSensitiveDataFields(false);
 
                         setLoadingMode();
 
@@ -1024,6 +1063,7 @@
 
                                     // Cache result.
                                     isMarketingAllowedByLicense[licenseKey] = result.is_marketing_allowed;
+                                    licenseOwnerIdByLicense[licenseKey] = result.license_owner_id;
                                 }
 
                                 afterMarketingFlagLoaded();
