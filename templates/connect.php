@@ -336,8 +336,8 @@
                         </label>
                     </div>
                 </div>
-                <div id="fs_privacy_license_owner">
-                    <span class="fs-message"><?php fs_echo_inline( "A user has not yet been associated with the license, which is necessary to prevent unauthorized activation. To assign the license to your user, you agree to share your WP user's full name and email address." ) ?></span>
+                <div id="fs_orphan_license_message">
+                    <span class="fs-message"><?php fs_echo_inline( "A user has not yet been associated with the license, which is necessary to prevent unauthorized activation. To assign the license to your user, you agree to share your WordPress user's full name and email address." ) ?></span>
                 </div>
 			<?php endif ?>
 			<?php if ( $is_network_level_activation ) : ?>
@@ -918,16 +918,14 @@
 
 					if ('' === key) {
 						$primaryCta.attr('disabled', 'disabled');
-                        $marketingOptin.hide();
-                        toggleSensitiveDataFields(false);
+						hideOptinAndLicenseMessage();
 					} else {
                         $primaryCta.prop('disabled', false);
 
                         if (32 <= key.length){
                             fetchIsMarketingAllowedFlagAndToggleOptin();
                         } else {
-                            $marketingOptin.hide();
-                            toggleSensitiveDataFields(false);
+                            hideOptinAndLicenseMessage();
                         }
 					}
 
@@ -963,34 +961,10 @@
 		//region GDPR
 		//--------------------------------------------------------------------------------
         var isMarketingAllowedByLicense = {},
-            licenseOwnerIdByLicense = {},
-            $marketingOptin = $('#fs_marketing_optin'),
-            $privacyLicenseOwner = $('#fs_privacy_license_owner'),
-            $fieldFirstName = document.querySelector("input[name='user_firstname']"),
-            $fieldLastName = document.querySelector("input[name='user_lastname']"),
-            $fieldEmail = document.querySelector("input[name='user_email']"),
-            $form = $fieldFirstName.parentNode,
-            previousLicenseKey = null;
-
-        // A function to enable/disable sensitive data fields
-        var toggleSensitiveDataFields = function (shouldSendSensitiveData) {
-            if (shouldSendSensitiveData) {
-                $privacyLicenseOwner.show();
-                // Add fields to the form if they are not already there.
-                $form.appendChild($fieldFirstName);
-                $form.appendChild($fieldLastName);
-                $form.appendChild($fieldEmail);
-            } else {
-                $privacyLicenseOwner.hide();
-                // Remove fields from the form if they are there.
-                if ($fieldFirstName.parentNode === $form)
-                    $form.removeChild($fieldFirstName);
-                if ($fieldLastName.parentNode === $form)
-                    $form.removeChild($fieldLastName);
-                if ($fieldEmail.parentNode === $form)
-                    $form.removeChild($fieldEmail);
-            }
-        };
+            licenseOwnerIDByLicense     = {},
+            $marketingOptin             = $( '#fs_marketing_optin' ),
+            $orphanLicenseMessage       = $( '#fs_orphan_license_message' ),
+            previousLicenseKey          = null;
 
 		if (requireLicenseKey) {
 
@@ -1013,11 +987,7 @@
                             $primaryCta.focus();
                         }
 
-                        if (null == licenseOwnerIdByLicense[licenseKey]){
-                            toggleSensitiveDataFields(true);
-                        } else {
-                            toggleSensitiveDataFields(false);
-                        }
+                        $orphanLicenseMessage.toggle( false === licenseOwnerIDByLicense[ licenseKey ] );
                     },
                     /**
                      * @author Leo Fajardo (@leorw)
@@ -1027,8 +997,8 @@
                         var licenseKey = $licenseKeyInput.val();
 
                         if (licenseKey.length < 32) {
-                            $marketingOptin.hide();
-                            toggleSensitiveDataFields(false);
+                            hideOptinAndLicenseMessage();
+
                             return;
                         }
 
@@ -1037,9 +1007,7 @@
                             return;
                         }
 
-                        $marketingOptin.hide();
-                        toggleSensitiveDataFields(false);
-
+                        hideOptinAndLicenseMessage();
                         setLoadingMode();
 
                         $primaryCta.addClass('fs-loading');
@@ -1063,12 +1031,16 @@
 
                                     // Cache result.
                                     isMarketingAllowedByLicense[licenseKey] = result.is_marketing_allowed;
-                                    licenseOwnerIdByLicense[licenseKey] = result.license_owner_id;
+                                    licenseOwnerIDByLicense[ licenseKey ]   = result.license_owner_id;
                                 }
 
                                 afterMarketingFlagLoaded();
                             }
                         });
+                    },
+                    hideOptinAndLicenseMessage = function() {
+                        $marketingOptin.hide();
+                        $orphanLicenseMessage.hide();
                     };
 
 			$marketingOptin.find( 'input' ).click(function() {
