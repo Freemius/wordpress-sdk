@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.11.0.8';
+	$this_sdk_version = '2.11.0.9';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -90,8 +90,8 @@
      * @author Leo Fajardo (@leorw)
      * @since 2.2.3
      */
-	$themes_directory         = get_theme_root( get_stylesheet() );
-	$themes_directory_name    = basename( $themes_directory );
+	$themes_directory      = fs_normalize_path( get_theme_root( get_stylesheet() ) );
+	$themes_directory_name = basename( $themes_directory );
 
     // This change ensures that the condition works even if the SDK is located in a subdirectory (e.g., vendor)
     $theme_candidate_sdk_basename = str_replace( $themes_directory . '/' . get_stylesheet() . '/', '', $fs_root_path );
