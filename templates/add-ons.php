@@ -374,11 +374,11 @@
 	</div>
 	<script type="text/javascript">
 		(function( $, undef ) {
-			$('a.thickbox').on('click', function () {
-				setTimeout(function() {
-					$('#TB_window').addClass('plugin-details-modal');
-				}, 0);
-			});
+			$( 'a.thickbox' ).on( 'click', function () {
+				setTimeout( function () {
+					$( '#TB_window' ).addClass( 'plugin-details-modal' );
+				}, 0 );
+			} );
 
 			<?php if ( $open_addon ) : ?>
 
