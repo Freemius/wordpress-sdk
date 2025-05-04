@@ -3629,7 +3629,7 @@
 
             $this->delete_current_install( false );
 
-            $license_key = false;
+            $license = null;
 
             if (
                 is_object( $this->_license ) &&
@@ -3637,20 +3637,21 @@
                     ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( self::get_unfiltered_site_url() ) )
                 )
             ) {
-                $license_key = $this->_license->secret_key;
+                $license = $this->_license;
             }
 
             return $this->opt_in(
                 false,
                 false,
                 false,
-                $license_key,
+                ( is_object( $license ) ? $license->secret_key : false ),
                 false,
                 false,
                 false,
                 null,
                 array(),
-                false
+                false,
+                ( is_object( $license ) ? $license->user_id : null )
             );
         }
 
@@ -7659,7 +7660,14 @@
                     $parent_fs->get_current_or_network_user()->email,
                     false,
                     false,
-                    $license->secret_key
+                    $license->secret_key,
+                    false,
+                    false,
+                    false,
+                    null,
+                    array(),
+                    true,
+                    $license->user_id
                 );
             } else {
                 // Activate the license.
@@ -7723,7 +7731,9 @@
                     false,
                     false,
                     null,
-                    $sites
+                    $sites,
+                    true,
+                    $license->user_id
                 );
             } else {
                 $blog_2_install_map = array();
@@ -7949,7 +7959,8 @@
                     null,
                     null,
                     $sites,
-                    ( $current_blog_id > 0 ? $current_blog_id : null )
+                    ( $current_blog_id > 0 ? $current_blog_id : null ),
+                    $license->user_id
                 );
             }
         }
@@ -13485,7 +13496,8 @@
                 fs_request_get( 'module_id', null, 'post' ),
                 fs_request_get( 'user_id', null ),
                 fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
-                fs_request_get_bool( 'is_diagnostic_tracking_allowed', null )
+                fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ),
+                fs_request_get( 'license_owner_id', null )
             );
 
             if (
@@ -13634,6 +13646,7 @@
          * @param null|number $plugin_id
          * @param array       $sites
          * @param int         $blog_id
+         * @param null|number $license_owner_id
          *
          * @return array {
          *      @var bool   $success
@@ -13648,7 +13661,8 @@
             $is_marketing_allowed = null,
             $plugin_id = null,
             $sites = array(),
-            $blog_id = null
+            $blog_id = null,
+            $license_owner_id = null
         ) {
             $this->_logger->entrance();
 
@@ -13659,7 +13673,11 @@
                     $sites,
                 $is_marketing_allowed,
                 $blog_id,
-                $plugin_id
+                $plugin_id,
+                null,
+                null,
+                null,
+                $license_owner_id
             );
 
             // No need to show the sticky after license activation notice after migrating a license.
@@ -13733,9 +13751,10 @@
          * @param null|bool   $is_marketing_allowed
          * @param null|int    $blog_id
          * @param null|number $plugin_id
-         * @param null|number $license_owner_id
+         * @param null|number $user_id
          * @param bool|null   $is_extensions_tracking_allowed
          * @param bool|null   $is_diagnostic_tracking_allowed Since 2.5.0.2 to allow license activation with minimal data footprint.
+         * @param null|number $license_owner_id
          *
          *
          * @return array {
@@ -13750,9 +13769,10 @@
             $is_marketing_allowed = null,
             $blog_id = null,
             $plugin_id = null,
-            $license_owner_id = null,
+            $user_id = null,
             $is_extensions_tracking_allowed = null,
-            $is_diagnostic_tracking_allowed = null
+            $is_diagnostic_tracking_allowed = null,
+            $license_owner_id = null
         ) {
             $this->_logger->entrance();
 
@@ -13841,10 +13861,10 @@
 
                         $install_ids = array();
 
-                        $change_owner = FS_User::is_valid_id( $license_owner_id );
+                        $change_owner = FS_User::is_valid_id( $user_id );
 
                         if ( $change_owner ) {
-                            $params['user_id'] = $license_owner_id;
+                            $params['user_id'] = $user_id;
 
                             $installs_info_by_slug_map = $fs->get_parent_and_addons_installs_info();
 
@@ -13920,7 +13940,9 @@
                     false,
                     false,
                     $is_marketing_allowed,
-                    $sites
+                    $sites,
+                    true,
+                    $license_owner_id
                 );
 
                 if ( isset( $next_page->error ) ) {
@@ -16936,13 +16958,12 @@
          *
          * @param array         $override_with
          * @param bool|int|null $network_level_or_blog_id If true, return params for network level opt-in. If integer, get params for specified blog in the network.
+         * @param bool          $skip_user_info
          *
          * @return array
          */
-        function get_opt_in_params( $override_with = array(), $network_level_or_blog_id = null ) {
+        function get_opt_in_params( $override_with = array(), $network_level_or_blog_id = null, $skip_user_info = false ) {
             $this->_logger->entrance();
-
-            $current_user = self::_get_current_wp_user();
 
             $activation_action = $this->get_unique_affix() . '_activate_new';
             $return_url        = $this->is_anonymous() ?
@@ -16954,9 +16975,6 @@
             $versions = $this->get_versions();
 
             $params = array_merge( $versions, array(
-                'user_firstname'    => $current_user->user_firstname,
-                'user_lastname'     => $current_user->user_lastname,
-                'user_email'        => $current_user->user_email,
                 'plugin_slug'       => $this->_slug,
                 'plugin_id'         => $this->get_id(),
                 'plugin_public_key' => $this->get_public_key(),
@@ -16971,6 +16989,21 @@
                 'is_uninstalled'    => false,
                 'is_localhost'      => WP_FS__IS_LOCALHOST,
             ) );
+
+            if (
+                ! $skip_user_info &&
+                (
+                    empty( $override_with['user_firstname'] ) ||
+                    empty( $override_with['user_lastname'] ) ||
+                    empty( $override_with['user_email'] )
+                )
+            ) {
+                $current_user = self::_get_current_wp_user();
+
+                $params['user_firstname'] = $current_user->user_firstname;
+                $params['user_lastname']  = $current_user->user_lastname;
+                $params['user_email']     = $current_user->user_email;
+            }
 
             if ( $this->is_addon() ) {
                 $parent_fs = $this->get_parent_instance();
@@ -17051,6 +17084,7 @@
          * @param null|bool   $is_marketing_allowed
          * @param array       $sites                If network-level opt-in, an array of containing details of sites.
          * @param bool        $redirect
+         * @param null|number $license_owner_id
          *
          * @return string|object
          * @use    WP_Error
@@ -17065,14 +17099,10 @@
             $is_disconnected = false,
             $is_marketing_allowed = null,
             $sites = array(),
-            $redirect = true
+            $redirect = true,
+            $license_owner_id = null
         ) {
             $this->_logger->entrance();
-
-            if ( false === $email ) {
-                $current_user = self::_get_current_wp_user();
-                $email        = $current_user->user_email;
-            }
 
             /**
              * @since 1.2.1 If activating with license key, ignore the context-user
@@ -17083,6 +17113,11 @@
                 $this->_storage->remove( 'pending_license_key' );
 
                 if ( ! $is_uninstall ) {
+                    if ( false === $email ) {
+                        $current_user = self::_get_current_wp_user();
+                        $email        = $current_user->user_email;
+                    }
+
                     $fs_user = Freemius::_get_user_by_email( $email );
                     if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
                         return $this->install_with_user(
@@ -17097,15 +17132,22 @@
                 }
             }
 
+            $skip_user_info = ( ! empty( $license_key ) && FS_User::is_valid_id( $license_owner_id ) );
+
             $user_info = array();
-            if ( ! empty( $email ) ) {
-                $user_info['user_email'] = $email;
-            }
-            if ( ! empty( $first ) ) {
-                $user_info['user_firstname'] = $first;
-            }
-            if ( ! empty( $last ) ) {
-                $user_info['user_lastname'] = $last;
+
+            if ( ! $skip_user_info ) {
+                if ( ! empty( $email ) ) {
+               	    $user_info['user_email'] = $email;
+                }
+
+                if ( ! empty( $first ) ) {
+               	    $user_info['user_firstname'] = $first;
+                }
+
+                if ( ! empty( $last ) ) {
+               	    $user_info['user_lastname'] = $last;
+                }
             }
 
             if ( ! empty( $sites ) ) {
@@ -17116,7 +17158,7 @@
                 $is_network = false;
             }
 
-            $params = $this->get_opt_in_params( $user_info, $is_network );
+            $params = $this->get_opt_in_params( $user_info, $is_network, $skip_user_info );
 
             $filtered_license_key = false;
             if ( is_string( $license_key ) ) {
@@ -21550,7 +21592,14 @@
                         false,
                         false,
                         false,
-                        $premium_license->secret_key
+                        $premium_license->secret_key,
+                        false,
+                        false,
+                        false,
+                        null,
+                        array(),
+                        true,
+                        $premium_license->user_id
                     );
 
                     return;

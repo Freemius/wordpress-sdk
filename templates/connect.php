@@ -742,10 +742,11 @@
 					var
                         licenseKey = $licenseKeyInput.val(),
                         data       = {
-                            action     : action,
-                            security   : security,
-                            license_key: licenseKey,
-                            module_id  : '<?php echo $fs->get_id() ?>'
+                            action          : action,
+                            security        : security,
+                            license_key     : licenseKey,
+                            module_id       : '<?php echo $fs->get_id() ?>',
+                            license_owner_id: licenseOwnerIDByLicense[ licenseKey ]
                         };
 
 					if (
@@ -988,6 +989,12 @@
                         }
 
                         $orphanLicenseMessage.toggle( false === licenseOwnerIDByLicense[ licenseKey ] );
+
+                        if ( false !== licenseOwnerIDByLicense[ licenseKey ] ) {
+                            $( 'input[name=user_firstname]' ).remove();
+                            $( 'input[name=user_lastname]' ).remove();
+                            $( 'input[name=user_email]' ).remove();
+                        }
                     },
                     /**
                      * @author Leo Fajardo (@leorw)
