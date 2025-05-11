@@ -8,6 +8,17 @@
     margin: 0 5px;
 }
 
+.fs-debug-table-toggle-button {
+    font-size: 1.2em;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+}
+
+.fs-debug-table {
+    overflow: hidden;
+}
+
 #fs_log_book {
     table {
         font-family: Consolas,Monaco,monospace;

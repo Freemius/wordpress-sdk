@@ -6,6 +6,7 @@
 .gitignore export-ignore
 gulpfile.js export-ignore
 *.json export-ignore
+composer.json !export-ignore
 composer.lock export-ignore
 /languages/*.po export-ignore
 /assets/scss/ export-ignore
