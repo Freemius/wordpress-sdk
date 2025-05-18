@@ -7814,9 +7814,9 @@
          *
          * @param FS_Plugin_License $license
          * @param array             $sites
-         * @param int               $current_blog_id
+         * @param int               $blog_id
          */
-        private function activate_bundle_license( $license, $sites = array(), $current_blog_id = 0 ) {
+        private function activate_bundle_license( $license, $sites = array(), $blog_id = 0 ) {
             $is_network_admin = fs_is_network_admin();
 
             $installs_by_blog_map  = array();
@@ -7849,16 +7849,16 @@
                     continue;
                 }
 
-                if ( $current_blog_id > 0 ) {
-                    $fs->switch_to_blog( $current_blog_id );
+                if ( $blog_id > 0 ) {
+                    $fs->switch_to_blog( $blog_id );
                 }
 
                 if ( $fs->has_active_valid_license() ) {
                     continue;
                 }
 
-                if ( ! $is_network_admin || $current_blog_id > 0 ) {
-                    if ( $fs->is_network_active() && ! $fs->is_delegated_connection( $current_blog_id ) ) {
+                if ( ! $is_network_admin || $blog_id > 0 ) {
+                    if ( $fs->is_network_active() && ! $fs->is_delegated_connection( $blog_id ) ) {
                         // Do not try to activate the license in the site level if the product is network active and the connection was not delegated.
                         continue;
                     }
@@ -7895,18 +7895,20 @@
                         }
                     }
 
+                    $current_blog_id = get_current_blog_id();
+
                     foreach ( $sites as $site ) {
                         if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
                             continue;
                         }
 
-                        $blog_id = $site['blog_id'];
+                        $site_blog_id = $site['blog_id'];
 
-                        if ( ! isset( $installs_by_blog_map[ $blog_id ] ) ) {
-                            $installs_by_blog_map[ $blog_id ] = self::get_all_sites( $fs->get_module_type(), $blog_id );
+                        if ( ! isset( $installs_by_blog_map[ $site_blog_id ] ) ) {
+                            $installs_by_blog_map[ $site_blog_id ] = self::get_all_sites( $fs->get_module_type(), $site_blog_id );
                         }
 
-                        $installs = $installs_by_blog_map[ $blog_id ];
+                        $installs = $installs_by_blog_map[ $site_blog_id ];
                         $install  = null;
 
                         if ( isset( $installs[ $fs->get_slug() ] ) ) {
@@ -7932,17 +7934,19 @@
                             break;
                         }
 
-                        if ( $fs->is_site_delegated_connection( $blog_id ) ) {
+                        if ( $fs->is_site_delegated_connection( $site_blog_id ) ) {
                             // Site activation delegated, don't activate bundle license on the site in the network admin.
                             continue;
                         }
 
-                        if ( ! isset( $site_info_by_blog_map[ $blog_id ] ) ) {
-                            $site_info_by_blog_map[ $blog_id ] = $fs->get_site_info( $site );
+                        if ( ! isset( $site_info_by_blog_map[ $site_blog_id ] ) ) {
+                            $site_info_by_blog_map[ $site_blog_id ] = $fs->get_site_info( $site );
                         }
 
-                        $filtered_sites[] = $site_info_by_blog_map[ $blog_id ];
+                        $filtered_sites[] = $site_info_by_blog_map[ $site_blog_id ];
                     }
+
+                    $fs->switch_to_blog( $current_blog_id );
 
                     if ( $has_install_with_license || empty( $filtered_sites ) ) {
                         // Do not try to activate the license at the network level if there's any install with a license or there's no site to activate the license on.
@@ -7957,7 +7961,7 @@
                     null,
                     null,
                     $sites,
-                    ( $current_blog_id > 0 ? $current_blog_id : null ),
+                    ( $blog_id > 0 ? $blog_id : null ),
                     $license->user_id
                 );
             }
@@ -8041,6 +8045,8 @@
             $sites     = array();
             $all_sites = self::get_sites();
 
+            $current_blog_id = get_current_blog_id();
+
             foreach ( $all_sites as $site ) {
                 $blog_id = self::get_site_blog_id( $site );
 
@@ -8050,6 +8056,8 @@
                     $sites[] = $this->get_site_info( $site );
                 }
             }
+
+            $this->switch_to_blog( $current_blog_id );
 
             return $sites;
         }
@@ -9177,13 +9185,16 @@
             $install_url_by_install_id               = array();
             $subsite_registration_date_by_install_id = array();
 
+            $current_blog_id = get_current_blog_id();
+            $user            = $this->_user;
+
             foreach ( $sites as $site ) {
                 $blog_id = self::get_site_blog_id( $site );
 
                 $install = $this->get_install_by_blog_id( $blog_id );
 
                 if ( is_object( $install ) ) {
-                    if ( $install->user_id != $this->_user->id ) {
+                    if ( $install->user_id != $user->id ) {
                         // Install belongs to a different owner.
                         continue;
                     }
@@ -9281,7 +9292,7 @@
                 }
             }
 
-            restore_current_blog();
+            $this->switch_to_blog( $current_blog_id );
 
             $installs_data = array_merge(
                 $installs_data,
@@ -12268,10 +12279,14 @@
             $license_key,
             array $site_ids = array()
         ) {
+            $current_blog_id = get_current_blog_id();
+
             $sites = array();
             foreach ( $site_ids as $site_id ) {
                 $sites[] = $this->get_site_info( array( 'blog_id' => $site_id ) );
             }
+
+            $this->switch_to_blog( $current_blog_id );
 
             // Install the plugin.
             $result = $this->create_installs_with_user(
@@ -12588,6 +12603,8 @@
                             ) {
                                 $sites = self::get_sites();
 
+                                $current_blog_id = get_current_blog_id();
+
                                 /**
                                  * If in network admin area and the add-on was not network-activated or network-activated
                                  * and network-delegated, find any add-on whose is_whitelabeled flag is true.
@@ -12600,6 +12617,8 @@
                                         break;
                                     }
                                 }
+
+                                $this->switch_to_blog( $current_blog_id );
 
                                 if ( $is_whitelabeled ) {
                                     break;
@@ -15774,7 +15793,7 @@
          *
          * @return array
          */
-        function get_site_info( $site = null, $load_registration = false ) {
+        function get_site_info( $site = null, $load_registration = false, $restore_current_blog = false ) {
             $this->_logger->entrance();
 
             $switched = false;
@@ -15832,7 +15851,7 @@
                 $info[ 'registration_date' ] = $registration_date;
             }
 
-            if ( $switched ) {
+            if ( $switched && $restore_current_blog ) {
                 restore_current_blog();
             }
 
@@ -17019,7 +17038,7 @@
                     array( 'blog_id' => $network_level_or_blog_id ) :
                     null;
 
-                $site = $this->get_site_info( $site );
+                $site = $this->get_site_info( $site, false, true );
 
                 $diagnostic_info = array();
                 if ( FS_Permission_Manager::instance( $this )->is_diagnostic_tracking_allowed() ) {
@@ -17761,10 +17780,14 @@
                 FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
             ) );
 
+            $current_blog_id = get_current_blog_id();
+
             $sites = array();
             foreach ( $site_ids as $site_id ) {
                 $sites[] = $this->get_site_info( array( 'blog_id' => $site_id ) );
             }
+
+            $this->switch_to_blog( $current_blog_id );
 
             $this->install_with_user( $user, $license_key, $trial_plan_id, $redirect, true, $sites );
         }
