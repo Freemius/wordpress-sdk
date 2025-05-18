@@ -144,12 +144,16 @@
         $sites                   = Freemius::get_sites();
         $all_installs_plan_id    = null;
         $all_installs_license_id = ( $show_license_row ? $license->id : null );
+
+        $current_blog_id = get_current_blog_id();
+        $user            = $fs->get_user();
+
         foreach ( $sites as $s ) {
             $site_info   = $fs->get_site_info( $s );
             $install     = $fs->get_install_by_blog_id( $site_info['blog_id'] );
             $view_params = array(
                 'freemius' => $fs,
-                'user'     => $fs->get_user(),
+                'user'     => $user,
                 'license'  => $license,
                 'site'     => $site_info,
                 'install'  => $install,
@@ -173,6 +177,8 @@
                 $show_license_row = false;
             }
         }
+
+        $fs->switch_to_blog( $current_blog_id );
     }
 
     $has_bundle_license = false;
