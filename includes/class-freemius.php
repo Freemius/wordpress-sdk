@@ -20605,11 +20605,18 @@
          * @param bool        $flush      Since 1.1.7.3
          * @param int         $expiration Since 1.2.2.7
          * @param bool|string $newer_than Since 2.2.1
+         * @param bool        $fetch_readme Since 2.12.1
          *
          * @return object|false New plugin tag info if exist.
          */
-        private function _fetch_newer_version( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC, $newer_than = false ) {
-            $latest_tag = $this->_fetch_latest_version( $plugin_id, $flush, $expiration, $newer_than );
+        private function _fetch_newer_version(
+            $plugin_id = false,
+            $flush = true,
+            $expiration = WP_FS__TIME_24_HOURS_IN_SEC,
+            $newer_than = false,
+            $fetch_readme = true
+        ) {
+            $latest_tag = $this->_fetch_latest_version( $plugin_id, $flush, $expiration, $newer_than, $fetch_readme );
 
             if ( ! is_object( $latest_tag ) ) {
                 return false;
@@ -20654,7 +20661,7 @@
                 $plugin_id = $this->_plugin->id;
             }
 
-            $this->check_updates( true, $plugin_id, $flush, $expiration, $newer_than );
+            $this->check_updates( true, $plugin_id, $flush, $expiration, $newer_than, false );
             $updates = $this->get_all_updates();
 
             return isset( $updates[ $plugin_id ] ) && is_object( $updates[ $plugin_id ] ) ? $updates[ $plugin_id ] : false;
@@ -22339,18 +22346,20 @@
          * @param bool        $flush      Since 1.1.7.3
          * @param int         $expiration Since 1.2.2.7
          * @param bool|string $newer_than Since 2.2.1
+         * @param bool        $fetch_readme Since 2.12.1
          */
         private function check_updates(
             $background = false,
             $plugin_id = false,
             $flush = true,
             $expiration = FS_Plugin_Updater::UPDATES_CHECK_CACHE_EXPIRATION,
-            $newer_than = false
+            $newer_than = false,
+            $fetch_readme = true
         ) {
             $this->_logger->entrance();
 
             // Check if there's a newer version for download.
-            $new_version = $this->_fetch_newer_version( $plugin_id, $flush, $expiration, $newer_than );
+            $new_version = $this->_fetch_newer_version( $plugin_id, $flush, $expiration, $newer_than, $fetch_readme );
 
             $update = null;
             if ( is_object( $new_version ) ) {
