@@ -435,13 +435,14 @@
 
         /**
          * @param bool $default
+         * @param int|null $blog_id
          *
          * @return bool
          */
-        function is_diagnostic_tracking_allowed( $default = true ) {
+        function is_diagnostic_tracking_allowed( $default = true, $blog_id = null ) {
             return $this->is_premium_context() ?
-                $this->is_permission_allowed( self::PERMISSION_DIAGNOSTIC, $default ) :
-                $this->is_permission_allowed( self::PERMISSION_SITE, $default );
+                $this->is_permission_allowed( self::PERMISSION_DIAGNOSTIC, $default, $blog_id ) :
+                $this->is_permission_allowed( self::PERMISSION_SITE, $default, $blog_id );
         }
 
         /**
