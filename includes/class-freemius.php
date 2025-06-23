@@ -21038,6 +21038,14 @@
 
             $is_site_level_sync = ( $is_context_single_site || fs_is_blog_admin() || ! $this->_is_network_active );
 
+            // Get whitelisted domains.
+            $whitelisted_domains = $this->get_user_localhost_sites();
+
+            // Store whitelisted domains to $_accounts.
+            if (is_object($whitelisted_domains)) {
+                self::$_accounts->set_option( 'whitelisted_domains', $whitelisted_domains->localhost_sites );
+            }
+
             if ( ! $send_installs_update ) {
                 $site = $this->_site;
             } else {
@@ -26314,6 +26322,16 @@
             }
 
             return $path . ( false !== strpos( $path, '?' ) ? '&' : '?' ) . 'show_pending=true';
+        }
+
+        /**
+         * @author Edgar Melkonyan
+         *
+         * @return stdClass|false
+         */
+        function get_user_localhost_sites()
+        {
+            return $this->get_api_plugin_scope()->get("/users/{$this->_user->id}/localhost_site");
         }
 
         #endregion
