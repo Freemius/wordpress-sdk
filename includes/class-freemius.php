@@ -4495,33 +4495,31 @@
                 return;
             }
 
-            if ( $this->has_api_connectivity() ) {
-                if ( self::is_cron() ) {
-                    $this->hook_callback_to_sync_cron();
-                } else if ( $this->is_user_in_admin() ) {
-                    /**
-                     * Schedule daily data sync cron if:
-                     *
-                     *  1. User opted-in (for tracking).
-                     *  2. If skipped, but later upgraded (opted-in via upgrade).
-                     *
-                     * @author Vova Feldman (@svovaf)
-                     * @since  1.1.7.3
-                     *
-                     */
-                    if ( $this->is_registered() && $this->is_tracking_allowed() ) {
-                        $this->maybe_schedule_sync_cron();
-                    }
+            $this->hook_callback_to_sync_cron();
 
-                    /**
-                     * Check if requested for manual blocking background sync.
-                     */
-                    if ( fs_request_has( 'background_sync' ) ) {
-                        self::require_pluggable_essentials();
-                        self::wp_cookie_constants();
+            if ( $this->has_api_connectivity() && ! self::is_cron() && $this->is_user_in_admin() ) {
+                /**
+                 * Schedule daily data sync cron if:
+                 *
+                 *  1. User opted-in (for tracking).
+                 *  2. If skipped, but later upgraded (opted-in via upgrade).
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since  1.1.7.3
+                 *
+                 */
+                if ( $this->is_registered() && $this->is_tracking_allowed() ) {
+                    $this->maybe_schedule_sync_cron();
+                }
 
-                        $this->run_manual_sync();
-                    }
+                /**
+                 * Check if requested for manual blocking background sync.
+                 */
+                if ( fs_request_has('background_sync') ) {
+                    self::require_pluggable_essentials();
+                    self::wp_cookie_constants();
+
+                    $this->run_manual_sync();
                 }
             }
 
