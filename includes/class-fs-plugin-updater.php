@@ -548,13 +548,7 @@
 
             if ( ! isset( $this->_update_details ) ) {
                 // Get plugin's newest update.
-                $new_version = $this->_fs->get_update(
-                    false,
-                    fs_request_get_bool( 'force-check' ),
-                    FS_Plugin_Updater::UPDATES_CHECK_CACHE_EXPIRATION,
-                    $this->_fs->get_plugin_version(),
-                    true
-                );
+                $new_version = $this->_fs->get_update( false, fs_request_get_bool( 'force-check' ) );
 
                 $this->_update_details = false;
 

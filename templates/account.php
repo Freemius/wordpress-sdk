@@ -22,7 +22,7 @@
 	 * @var FS_Plugin_Tag $update
 	 */
 	$update = $fs->has_release_on_freemius() ?
-		$fs->get_update( false, false, FS_Plugin_Updater::UPDATES_CHECK_CACHE_EXPIRATION, $fs->get_plugin_version() ) :
+		$fs->get_update( false, false ) :
 		null;
 
 	if ( is_object($update) ) {
