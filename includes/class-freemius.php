@@ -5492,14 +5492,11 @@
                 $this->do_action( 'after_free_version_reactivation' );
 
                 if ( $this->is_paying() && ! $this->is_premium() ) {
-                    $this->add_complete_upgrade_instructions_notice(
-                        sprintf(
-                        /* translators: %s: License type (e.g. you have a professional license) */
-                            $this->get_text_inline( 'You have a %s license.', 'you-have-x-license' ),
-                            $this->get_plan_title()
-                        ),
-                        'plan_upgraded'
-                    );
+                    if ( ! is_admin() ) {
+                        add_action( 'admin_init', array( $this, '_add_complete_upgrade_instructions_notice' ) );
+                    } else {
+                        $this->_add_complete_upgrade_instructions_notice();
+                    }
                 }
             }
 
@@ -5523,6 +5520,17 @@
 
             // Update is_premium of latest version.
             $this->_storage->prev_is_premium = $this->_plugin->is_premium;
+        }
+
+        function _add_complete_upgrade_instructions_notice() {
+            $this->add_complete_upgrade_instructions_notice(
+                sprintf(
+                /* translators: %s: License type (e.g. you have a professional license) */
+                    $this->get_text_inline( 'You have a %s license.', 'you-have-x-license' ),
+                    $this->get_plan_title()
+                ),
+                'plan_upgraded'
+            );
         }
 
         #endregion
