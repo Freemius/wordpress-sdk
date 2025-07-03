@@ -20603,11 +20603,18 @@
          * @param bool        $flush      Since 1.1.7.3
          * @param int         $expiration Since 1.2.2.7
          * @param bool|string $newer_than Since 2.2.1
+         * @param bool        $fetch_upgrade_notice Since 2.12.1
          *
          * @return object|false New plugin tag info if exist.
          */
-        private function _fetch_newer_version( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC, $newer_than = false ) {
-            $latest_tag = $this->_fetch_latest_version( $plugin_id, $flush, $expiration, $newer_than );
+        private function _fetch_newer_version(
+            $plugin_id = false,
+            $flush = true,
+            $expiration = WP_FS__TIME_24_HOURS_IN_SEC,
+            $newer_than = false,
+            $fetch_upgrade_notice = true
+        ) {
+            $latest_tag = $this->_fetch_latest_version( $plugin_id, $flush, $expiration, $newer_than, false, $fetch_upgrade_notice );
 
             if ( ! is_object( $latest_tag ) ) {
                 return false;
@@ -20640,19 +20647,18 @@
          *
          * @param bool|number $plugin_id
          * @param bool        $flush      Since 1.1.7.3
-         * @param int         $expiration Since 1.2.2.7
-         * @param bool|string $newer_than Since 2.2.1
          *
          * @return bool|FS_Plugin_Tag
          */
-        function get_update( $plugin_id = false, $flush = true, $expiration = FS_Plugin_Updater::UPDATES_CHECK_CACHE_EXPIRATION, $newer_than = false ) {
+        function get_update( $plugin_id = false, $flush = true ) {
             $this->_logger->entrance();
 
             if ( ! is_numeric( $plugin_id ) ) {
                 $plugin_id = $this->_plugin->id;
             }
 
-            $this->check_updates( true, $plugin_id, $flush, $expiration, $newer_than );
+            $this->check_updates( true, $plugin_id, $flush );
+
             $updates = $this->get_all_updates();
 
             return isset( $updates[ $plugin_id ] ) && is_object( $updates[ $plugin_id ] ) ? $updates[ $plugin_id ] : false;
@@ -22109,6 +22115,7 @@
          * @param int         $expiration   Since 1.2.2.7
          * @param bool|string $newer_than   Since 2.2.1
          * @param bool|string $fetch_readme Since 2.2.1
+         * @param bool        $fetch_upgrade_notice Since 2.12.1
          *
          * @return object|false Plugin latest tag info.
          */
@@ -22117,7 +22124,8 @@
             $flush = true,
             $expiration = WP_FS__TIME_24_HOURS_IN_SEC,
             $newer_than = false,
-            $fetch_readme = true
+            $fetch_readme = true,
+            $fetch_upgrade_notice = false
         ) {
             $this->_logger->entrance();
 
@@ -22188,6 +22196,10 @@
 
                 // Don't cache the API response when fetching readme information.
                 $expiration = null;
+            }
+
+            if ( true === $fetch_upgrade_notice ) {
+                $latest_version_endpoint = add_query_arg( 'include_upgrade_notice', 'true', $latest_version_endpoint );
             }
 
             $tag = $this->get_api_site_or_plugin_scope()->get(
@@ -22335,20 +22347,20 @@
          *                                was initiated by the admin.
          * @param bool|number $plugin_id
          * @param bool        $flush      Since 1.1.7.3
-         * @param int         $expiration Since 1.2.2.7
-         * @param bool|string $newer_than Since 2.2.1
          */
-        private function check_updates(
-            $background = false,
-            $plugin_id = false,
-            $flush = true,
-            $expiration = FS_Plugin_Updater::UPDATES_CHECK_CACHE_EXPIRATION,
-            $newer_than = false
-        ) {
+        private function check_updates( $background = false, $plugin_id = false, $flush = true ) {
             $this->_logger->entrance();
 
+            $newer_than = ( $this->is_premium() ? $this->get_plugin_version() : false );
+
             // Check if there's a newer version for download.
-            $new_version = $this->_fetch_newer_version( $plugin_id, $flush, $expiration, $newer_than );
+            $new_version = $this->_fetch_newer_version(
+                $plugin_id,
+                $flush,
+                FS_Plugin_Updater::UPDATES_CHECK_CACHE_EXPIRATION,
+                $newer_than,
+                ( false !== $newer_than )
+            );
 
             $update = null;
             if ( is_object( $new_version ) ) {
