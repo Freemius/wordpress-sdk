@@ -4515,7 +4515,7 @@
                 /**
                  * Check if requested for manual blocking background sync.
                  */
-                if ( fs_request_has('background_sync') ) {
+                if ( fs_request_has( 'background_sync' ) ) {
                     self::require_pluggable_essentials();
                     self::wp_cookie_constants();
 
