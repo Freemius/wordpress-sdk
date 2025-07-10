@@ -15770,46 +15770,31 @@
          * @since  2.0.0
          *
          * @param array|WP_Site|null $site
-         * @param bool               $load_registration Since 2.5.1 When set to `true` the method will attempt to return the subsite's registration date, regardless of the `$site` type and value. In most calls, the registration date will be returned anyway, even when the value is `false`. This param is purely for performance optimization.
+         * @param bool               $load_registration Deprecated, the site's registration date is always loaded and returned.
          *
          * @return array
          */
-        function get_site_info( $site = null, $load_registration = false ) {
+        function get_site_info( $site = null, $load_registration = true ) {
             $this->_logger->entrance();
 
-            $switched = false;
+            $fs_hook_snapshot = new FS_Hook_Snapshot();
+            // Remove all filters from `switch_blog`
+            $fs_hook_snapshot->remove( 'switch_blog' );
 
-            $registration_date = null;
+            $blog_id      = is_null( $site ) ? null : self::get_site_blog_id( $site );
+	        $blog_details = $site instanceof WP_Site ?
+                $site :
+                ( is_multisite() ? get_blog_details( $blog_id, true ) : null );
 
-            if ( is_null( $site ) ) {
-                $url     = self::get_unfiltered_site_url();
-                $name    = get_bloginfo( 'name' );
-                $blog_id = null;
+            if ( ! is_object( $blog_details ) ) {
+                $name = get_bloginfo( 'name' );
+                $registration_date = null;
             } else {
-                $blog_id = self::get_site_blog_id( $site );
-
-                if ( get_current_blog_id() != $blog_id ) {
-                    switch_to_blog( $blog_id );
-                    $switched = true;
-                }
-
-                if ( $site instanceof WP_Site ) {
-                    $url               = $site->siteurl;
-                    $name              = $site->blogname;
-                    $registration_date = $site->registered;
-                } else {
-                    $url  = self::get_unfiltered_site_url( $blog_id );
-                    $name = get_bloginfo( 'name' );
-                }
+                $name              = $blog_details->blogname;
+                $registration_date = $blog_details->registered;
             }
 
-            if ( empty( $registration_date ) && $load_registration ) {
-                $blog_details = get_blog_details( $blog_id, false );
-
-                if ( is_object( $blog_details ) && isset( $blog_details->registered ) ) {
-                    $registration_date = $blog_details->registered;
-                }
-            }
+	        $url = self::get_unfiltered_site_url( $blog_id );
 
             $info = array(
                 'uid' => $this->get_anonymous_id( $blog_id ),
@@ -15817,7 +15802,7 @@
             );
 
             // Add these diagnostic information only if user allowed to track.
-            if ( FS_Permission_Manager::instance( $this )->is_diagnostic_tracking_allowed() ) {
+            if ( FS_Permission_Manager::instance( $this )->is_diagnostic_tracking_allowed( true, $blog_id ) ) {
                 $info = array_merge( $info, array(
                     'title'    => $name,
                     'language' => self::get_sanitized_language(),
@@ -15832,9 +15817,8 @@
                 $info[ 'registration_date' ] = $registration_date;
             }
 
-            if ( $switched ) {
-                restore_current_blog();
-            }
+            // Add the filters back to `switch_blog`
+            $fs_hook_snapshot->restore( 'switch_blog' );
 
             return $info;
         }
