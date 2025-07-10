@@ -56,8 +56,6 @@
         $subsite_url_by_install_id = array();
         $install_url_by_install_id = array();
 
-        $current_blog_id = get_current_blog_id();
-
         foreach ( $all_sites as $site ) {
             $site_details = $fs->get_site_info( $site );
 
@@ -97,8 +95,6 @@
 
             $all_site_details[] = $site_details;
         }
-
-        $fs->switch_to_blog( $current_blog_id );
 
         if ( $is_network_activation ) {
             $vars = array(
