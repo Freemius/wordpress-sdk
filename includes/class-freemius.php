@@ -15777,7 +15777,9 @@
         function get_site_info( $site = null, $load_registration = false ) {
             $this->_logger->entrance();
 
-            $switched = false;
+            $fs_hook_snapshot = new FS_Hook_Snapshot();
+            // Remove all filters from `switch_blog`.
+            $fs_hook_snapshot->remove( 'switch_blog' );
 
             $registration_date = null;
 
@@ -15790,7 +15792,6 @@
 
                 if ( get_current_blog_id() != $blog_id ) {
                     switch_to_blog( $blog_id );
-                    $switched = true;
                 }
 
                 if ( $site instanceof WP_Site ) {
@@ -15832,9 +15833,8 @@
                 $info[ 'registration_date' ] = $registration_date;
             }
 
-            if ( $switched ) {
-                restore_current_blog();
-            }
+            // Add the filters back to `switch_blog`.
+            $fs_hook_snapshot->restore( 'switch_blog' );
 
             return $info;
         }
