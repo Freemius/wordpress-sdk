@@ -23505,7 +23505,7 @@
                         $params['plugin_public_key'] = $this->get_public_key();
                     }
 
-                    $result = $api->get( 'pricing.json?' . http_build_query( $params ) );
+                    $result = $api->get( $this->add_show_pending( 'pricing.json?' . http_build_query( $params ) ) );
                     break;
                 case 'start_trial':
                     $trial_plan_id = fs_request_get( 'plan_id' );
