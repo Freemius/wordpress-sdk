@@ -379,7 +379,7 @@
                 <tr<?php if ( $is_active ) {
                     $has_api_connectivity = $fs->has_api_connectivity();
 
-                    if ( true === $has_api_connectivity && $fs->is_on() ) {
+                    if ( false !== $has_api_connectivity && $fs->is_on() ) {
                         echo ' style="background: #E6FFE6; font-weight: bold"';
                     } else {
                         echo ' style="background: #ffd0d0; font-weight: bold"';
@@ -389,14 +389,14 @@
                     <td><?php echo $slug ?></td>
                     <td><?php echo $data->version ?></td>
                     <td><?php echo $data->title ?></td>
-                    <td<?php if ( $is_active && true !== $has_api_connectivity ) {
+                    <td<?php if ( $is_active && false === $has_api_connectivity ) {
                         echo ' style="color: red; text-transform: uppercase;"';
                     } ?>><?php if ( $is_active ) {
                             echo esc_html( true === $has_api_connectivity ?
                                 fs_text_x_inline( 'Connected', 'as connection was successful' ) :
                                 ( false === $has_api_connectivity ?
                                     fs_text_x_inline( 'Blocked', 'as connection blocked' ) :
-                                    fs_text_x_inline( 'Unknown', 'API connectivity state is unknown' ) )
+                                    fs_text_x_inline( 'No requests yet', 'API connectivity state is unknown' ) )
                             );
                         } ?></td>
                     <td<?php if ( $is_active && ! $fs->is_on() ) {
