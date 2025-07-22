@@ -353,6 +353,7 @@
             </tr>
             </thead>
             <tbody>
+            <?php $alternate = false; ?>
             <?php foreach ( $modules as $slug => $data ) : ?>
                 <?php
                 if ( WP_FS__MODULE_TYPE_THEME !== $module_type ) {
@@ -376,12 +377,12 @@
                         $active_modules_by_id[ $data->id ] = true;
                     }
                 ?>
-                <tr<?php if ( $is_active ) {
+                <tr<?php if ( $alternate ) { echo ' class="alternate" '; } ?><?php if ( $is_active ) {
                     $has_api_connectivity = $fs->has_api_connectivity();
 
-                    if ( false !== $has_api_connectivity && $fs->is_on() ) {
+                    if ( true === $has_api_connectivity && $fs->is_on() ) {
                         echo ' style="background: #E6FFE6; font-weight: bold"';
-                    } else {
+                    } else if ( false === $has_api_connectivity || ! $fs->is_on() ) {
                         echo ' style="background: #ffd0d0; font-weight: bold"';
                     }
                 } ?>>
@@ -450,6 +451,7 @@
                         <?php endif ?>
                     </td>
                 </tr>
+            <?php $alternate = ! $alternate ?>
             <?php endforeach ?>
             </tbody>
         </table>
