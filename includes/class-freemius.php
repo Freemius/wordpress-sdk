@@ -15777,6 +15777,10 @@
         function get_site_info( $site = null, $load_registration = false ) {
             $this->_logger->entrance();
 
+            $fs_hook_snapshot = new FS_Hook_Snapshot();
+            // Remove all filters from `switch_blog`.
+            $fs_hook_snapshot->remove( 'switch_blog' );
+
             $switched = false;
 
             $registration_date = null;
@@ -15835,6 +15839,9 @@
             if ( $switched ) {
                 restore_current_blog();
             }
+
+            // Add the filters back to `switch_blog`.
+            $fs_hook_snapshot->restore( 'switch_blog' );
 
             return $info;
         }
