@@ -153,6 +153,11 @@
 				( $fs->is_theme() && current_user_can( 'install_themes' ) )
 			);
 
+            // Add developer-defined checkout overrides directly to context.
+            foreach ( $fs->get_checkout_config() as $key => $value ) {
+                $context_params[ $key ] = $value;
+            }
+
 			return array_merge( $context_params, $_GET, array(
 				// Current plugin version.
 				'plugin_version' => $fs->get_plugin_version(),
