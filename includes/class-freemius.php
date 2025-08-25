@@ -5190,9 +5190,8 @@
                 ) );
             }
 
-            if ( isset( $plugin_info['checkout'] ) && is_array( $plugin_info['checkout'] ) ) {
-                $this->_checkout_config = $this->validate_checkout_config( $plugin_info['checkout'] );
-            }
+            // Extracts, validate and save checkout-specific settings.
+            $this->_checkout_config = $this->validate_checkout_config( $plugin_info );
 
             $plugin = ( $this->_plugin instanceof FS_Plugin ) ?
                 $this->_plugin :
@@ -5344,70 +5343,65 @@
          */
         protected function validate_checkout_config($config)
         {
-            $schema = [
-                    'cart'       => [
-                            'always_show_renewals_amount'   => 'bool',
-                            'annual_discount'               => 'bool',
-                            'billing_cycle'                 => ['string', 'int'],
-                            'bundle_discount'               => 'float',
-                            'maximize_discounts'            => 'bool',
-                            'multisite_discount'            => ['bool', 'string'], // string expected to be "auto"
-                            'show_inline_currency_selector' => 'bool',
-                            'show_monthly'                  => 'bool',
-                    ],
-                    'appearance' => [
-                            'form_position'          => 'string',
-                            'is_bundle_collapsed'    => 'bool',
-                            'layout'                 => 'string',
-                            'refund_policy_position' => 'string',
-                            'show_refund_badge'      => 'bool',
-                            'show_reviews'           => 'bool',
-                            'show_upsells'           => 'bool',
-                            'title'                  => 'string',
-                    ],
-            ];
+            $schema = array(
+                // currency
+                'currency'                      => 'string',
+                'default_currency'              => 'string',
+                // cart
+                'always_show_renewals_amount'   => 'bool',
+                'annual_discount'               => 'bool',
+                'billing_cycle'                 => ['string', 'int'],
+                'bundle_discount'               => 'float',
+                'maximize_discounts'            => 'bool',
+                'multisite_discount'            => ['bool', 'string'], // string expected to be "auto"
+                'show_inline_currency_selector' => 'bool',
+                'show_monthly'                  => 'bool',
+                // appearance
+                'form_position'                 => 'string',
+                'is_bundle_collapsed'           => 'bool',
+                'layout'                        => 'string',
+                'refund_policy_position'        => 'string',
+                'show_refund_badge'             => 'bool',
+                'show_reviews'                  => 'bool',
+                'show_upsells'                  => 'bool',
+                'title'                         => 'string',
+            );
 
-            $result = [];
+            $result = array();
 
-            foreach ($schema as $section => $fields)
+            foreach ($schema as $key => $expected_type)
             {
-                if (isset($config[$section]) && is_array($config[$section]))
+                if (array_key_exists($key, $config))
                 {
-                    foreach ($fields as $key => $expected_type)
+                    $value = $config[$key];
+                    $types = is_array($expected_type) ? $expected_type : [$expected_type];
+                    $valid = false;
+
+                    foreach ($types as $type)
                     {
-                        if (array_key_exists($key, $config[$section]))
+                        switch ($type)
                         {
-                            $value = $config[$section][$key];
-                            $types = is_array($expected_type) ? $expected_type : [$expected_type];
-                            $valid = false;
-
-                            foreach ($types as $type)
-                            {
-                                switch ($type)
-                                {
-                                    case 'bool':
-                                        if (is_bool($value))
-                                            $valid = true;
-                                        break;
-                                    case 'string':
-                                        if (is_string($value))
-                                            $valid = true;
-                                        break;
-                                    case 'int':
-                                        if (is_int($value))
-                                            $valid = true;
-                                        break;
-                                    case 'float':
-                                        if (is_float($value) || is_int($value))
-                                            $valid = true;
-                                        break;
-                                }
-                            }
-
-                            if ($valid)
-                                $result[$key] = $value;
+                            case 'bool':
+                                if (is_bool($value))
+                                    $valid = true;
+                                break;
+                            case 'string':
+                                if (is_string($value))
+                                    $valid = true;
+                                break;
+                            case 'int':
+                                if (is_int($value))
+                                    $valid = true;
+                                break;
+                            case 'float':
+                                if (is_float($value) || is_int($value))
+                                    $valid = true;
+                                break;
                         }
                     }
+
+                    if ($valid)
+                        $result[$key] = $value;
                 }
             }
 
