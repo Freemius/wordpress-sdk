@@ -17218,6 +17218,10 @@
             $params['is_extensions_tracking_allowed'] = FS_Permission_Manager::instance( $this )->is_extensions_tracking_allowed();
             $params['is_diagnostic_tracking_allowed'] = FS_Permission_Manager::instance( $this )->is_diagnostic_tracking_allowed();
 
+            // We want to allow people activating license on unpublished plugins if they are using a license key
+            if ( ! empty($license_key))
+                $params['show_pending'] = true;
+
             $request = array(
                 'method'  => 'POST',
                 'body'    => $params,
