@@ -8839,8 +8839,13 @@
                      isset( $site_active_plugins[ $basename ] )
                 ) {
                     // Plugin was site level activated.
-                    $site_active_plugins_cache->plugins[ $basename ]              = $network_plugins[ $basename ];
-                    $site_active_plugins_cache->plugins[ $basename ]['is_active'] = true;
+                    $site_active_plugins_cache->plugins[ $basename ] = array(
+                        'slug'           => $network_plugins[ $basename ]['slug'],
+                        'version'        => $network_plugins[ $basename ]['Version'],
+                        'title'          => $network_plugins[ $basename ]['Name'],
+                        'is_active'      => $is_active,
+                        'is_uninstalled' => false,
+                    );
                 } else if ( isset( $site_active_plugins_cache->plugins[ $basename ] ) &&
                             ! isset( $site_active_plugins[ $basename ] )
                 ) {
