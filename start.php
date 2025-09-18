@@ -10,12 +10,27 @@
 		return;
 	}
 
+    /**
+     * Add a constant to skip loading the latest SDK.
+     * This is useful for particular configurations like Bedrock where the SDK is loaded from the vendor folder before WordPress is fully loaded.
+     * @Important: This constant must be defined before the SDK is loaded (e.g., in wp-config.php before the require_once() call to /vendor/autoload.php).
+     * @since 2.12.2.1
+     */
+    if ( defined('FS__SKIP_LATEST_SDK_LOADING') && FS__SKIP_LATEST_SDK_LOADING ) {
+        if ( ! function_exists('fs_dynamic_init') ) {
+            function fs_dynamic_init( $module = [] ) {
+                return null;
+            }
+        }
+        return;
+    }
+
 	/**
 	 * Freemius SDK Version.
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.12.2';
+	$this_sdk_version = '2.12.2.1';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
