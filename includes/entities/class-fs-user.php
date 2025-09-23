@@ -54,11 +54,18 @@
 		 *
 		 * @return void
 		 */
-		function __wakeup() {
+		function __unserialize( $data ) {
 			if ( property_exists( $this, 'is_beta' ) ) {
 				// If we enter here, and we are running PHP 8.2, we already had the warning. But we sanitize data for next execution.
 				unset( $this->is_beta );
 			}
+		}
+
+		/**
+		 * Compatibility wrapper of `__unserialize` for PHP < 7.4.
+		 */
+		function __wakeup() {
+			$this->__unserialize( array() );
 		}
 
 		function get_name() {
