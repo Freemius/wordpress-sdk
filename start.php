@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.12.2.1';
+	$this_sdk_version = '2.12.2.2';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -453,6 +453,7 @@
 	 *
 	 *      fs_after_license_loaded_{plugin_slug}
 	 *      fs_after_license_change_{plugin_slug}
+	 *      fs_after_license_activation_{plugin_slug}
 	 *      fs_after_license_deactivation_{plugin_slug}
 	 *      fs_after_plans_sync_{plugin_slug}
 	 *

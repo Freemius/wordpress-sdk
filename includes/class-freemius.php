@@ -14034,6 +14034,10 @@
                 $result['next_page'] = $next_page;
             }
 
+            if ( $result['success'] ) {
+                $this->do_action( 'after_license_activation' );
+            }
+
             return $result;
         }
 
@@ -21666,6 +21670,8 @@
 
                 return;
             }
+
+            $this->do_action( 'after_license_activation' );
 
             $premium_license = new FS_Plugin_License( $license );
 
