@@ -3692,12 +3692,14 @@
 
             global $fs_active_plugins;
 
-            // Works both for plugins and themes.
-            load_plugin_textdomain(
-                'freemius',
-                false,
-                $fs_active_plugins->newest->sdk_path . '/languages/'
-            );
+            // Defensive guard: $fs_active_plugins may not be initialized yet in deferred load scenarios.
+            if ( ! is_object( $fs_active_plugins ) ||
+                 ! isset( $fs_active_plugins->newest ) ||
+                 ! is_object( $fs_active_plugins->newest ) ||
+                 empty( $fs_active_plugins->newest->sdk_path ) ) {
+                return;
+            }
+
         }
 
         #endregion

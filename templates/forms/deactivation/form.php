@@ -12,8 +12,21 @@
 
 	/**
 	 * @var array $VARS
+	 * @var Freemius|null $fs
 	 */
-	$fs   = freemius( $VARS['id'] );
+	$fs = null;
+	if ( function_exists( 'freemius' ) ) {
+		$fs = freemius( $VARS['id'] );
+	} elseif ( class_exists( 'Freemius' ) && method_exists( 'Freemius', 'get_instance_by_id' ) ) {
+		// Fallback for deferred-load scenarios where the helper function may not be defined yet.
+		$fs = Freemius::get_instance_by_id( $VARS['id'] );
+	}
+
+	// Abort rendering if the Freemius instance is unavailable (fail-safe).
+	if ( ! is_object( $fs ) ) {
+		return;
+	}
+
 	$slug = $fs->get_slug();
 
     $subscription_cancellation_dialog_box_template_params = $VARS['subscription_cancellation_dialog_box_template_params'];

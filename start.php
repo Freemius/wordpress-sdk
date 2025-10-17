@@ -11,26 +11,132 @@
 	}
 
     /**
-     * Add a constant to skip loading the latest SDK.
-     * This is useful for particular configurations like Bedrock where the SDK is loaded from the vendor folder before WordPress is fully loaded.
-     * @Important: This constant must be defined before the SDK is loaded (e.g., in wp-config.php before the require_once() call to /vendor/autoload.php).
-     * @since 2.12.2.1
+     * Freemius SDK Version.
+     *
+     * @var string
      */
-    if ( defined('FS__SKIP_LATEST_SDK_LOADING') && FS__SKIP_LATEST_SDK_LOADING ) {
-        if ( ! function_exists('fs_dynamic_init') ) {
-            function fs_dynamic_init( $module = [] ) {
+    $this_sdk_version = '2.12.2';
+
+    // Define SDK version constant once, early, so it's available for deferred paths too.
+    if ( ! defined( 'WP_FS__SDK_VERSION' ) ) {
+        define( 'WP_FS__SDK_VERSION', $this_sdk_version );
+    }
+
+    /**
+     * Allow skipping the early "latest SDK loader" but still support safe, late initialization.
+     *
+     * When FS__SKIP_LATEST_SDK_LOADING is true, we avoid the early loader that may run before WP is fully bootstrapped
+     * (common in Bedrock/Altis when Composer autoload runs too early). Instead of disabling the SDK, we provide a
+     * deferring shim for fs_dynamic_init() that initializes the SDK as soon as the WordPress plugin API is available.
+     *
+     * @since 2.12.2.2
+     */
+    if ( defined( 'FS__SKIP_LATEST_SDK_LOADING' ) && FS__SKIP_LATEST_SDK_LOADING ) {
+        // Queue for modules waiting for late init.
+        if ( ! isset( $GLOBALS['fs__deferred_modules'] ) || ! is_array( $GLOBALS['fs__deferred_modules'] ) ) {
+            $GLOBALS['fs__deferred_modules'] = array();
+        }
+
+        if ( ! function_exists( 'fs__process_deferred_freemius_inits' ) ) {
+            /**
+             * Process deferred Freemius initializations.
+             * Loads the SDK core and initializes all queued modules.
+             */
+            function fs__process_deferred_freemius_inits() {
+                if ( class_exists( 'Freemius' ) ) {
+                    // SDK already loaded.
+                } else {
+                    // Load SDK core files directly, bypassing start.php to avoid recursion/early loader.
+                    // Preload essentials to satisfy functions used by config.php (e.g., fs_get_ip()).
+                    $fs_sdk_dir = dirname( __FILE__ );
+                    $fs_essential = $fs_sdk_dir . '/includes/fs-essential-functions.php';
+                    if ( file_exists( $fs_essential ) ) {
+                        require_once $fs_essential;
+                    }
+                    $fs_ip = $fs_sdk_dir . '/includes/fs-ip.php';
+                    if ( file_exists( $fs_ip ) ) {
+                        require_once $fs_ip;
+                    }
+                    require_once $fs_sdk_dir . '/require.php';
+                }
+
+                if ( isset( $GLOBALS['fs__deferred_modules'] ) && is_array( $GLOBALS['fs__deferred_modules'] ) ) {
+                    foreach ( $GLOBALS['fs__deferred_modules'] as $module ) {
+                        if ( is_array( $module ) && isset( $module['id'], $module['slug'] ) ) {
+                            try {
+                                $fs = Freemius::instance( $module['id'], $module['slug'], true );
+                                $fs->dynamic_init( $module );
+                            } catch ( Exception $e ) {
+                                // Swallow to avoid breaking host; log if WP_DEBUG is true.
+                                if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                                    error_log( '[Freemius] Deferred init failed: ' . $e->getMessage() );
+                                }
+                            }
+                        }
+                    }
+                    // Clear the queue.
+                    $GLOBALS['fs__deferred_modules'] = array();
+                }
+            }
+        }
+
+        if ( ! function_exists( 'fs_dynamic_init' ) ) {
+            /**
+             * Deferring shim for fs_dynamic_init().
+             *
+             * If the WordPress plugin API is already available, initialize immediately.
+             * Otherwise, queue the module and ensure processing happens on 'plugins_loaded'.
+             *
+             * @param array $module
+             * @return Freemius|null
+             */
+            function fs_dynamic_init( $module = array() ) {
+                // If WP plugin API is ready, initialize now.
+                if ( function_exists( 'add_action' ) ) {
+                    if ( ! class_exists( 'Freemius' ) ) {
+                        // Preload essentials to satisfy functions used by config.php (e.g., fs_get_ip()).
+                        $fs_sdk_dir = dirname( __FILE__ );
+                        $fs_essential = $fs_sdk_dir . '/includes/fs-essential-functions.php';
+                        if ( file_exists( $fs_essential ) ) {
+                            require_once $fs_essential;
+                        }
+                        $fs_ip = $fs_sdk_dir . '/includes/fs-ip.php';
+                        if ( file_exists( $fs_ip ) ) {
+                            require_once $fs_ip;
+                        }
+                        require_once $fs_sdk_dir . '/require.php';
+                    }
+                    if ( class_exists( 'Freemius' ) && is_array( $module ) && isset( $module['id'], $module['slug'] ) ) {
+                        $fs = Freemius::instance( $module['id'], $module['slug'], true );
+                        $fs->dynamic_init( $module );
+                        return $fs;
+                    }
+                }
+
+                // Otherwise, defer until plugins_loaded.
+                if ( ! isset( $GLOBALS['fs__deferred_modules'] ) || ! is_array( $GLOBALS['fs__deferred_modules'] ) ) {
+                    $GLOBALS['fs__deferred_modules'] = array();
+                }
+                $GLOBALS['fs__deferred_modules'][] = $module;
+
+                // If WP hooks are available, schedule processing (idempotent).
+                if ( function_exists( 'add_action' ) ) {
+                    add_action( 'plugins_loaded', 'fs__process_deferred_freemius_inits', 1 );
+                }
+
                 return null;
             }
         }
+
+        // If WP hooks are already available at this point (e.g., start.php was included late),
+        // schedule immediate processing of any queued modules.
+        if ( function_exists( 'add_action' ) ) {
+            add_action( 'plugins_loaded', 'fs__process_deferred_freemius_inits', 1 );
+        }
+
+        // Important: return to skip the early loader below.
         return;
     }
-
-	/**
-	 * Freemius SDK Version.
-	 *
-	 * @var string
-	 */
-	$this_sdk_version = '2.12.2.1';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 

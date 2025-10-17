@@ -37,36 +37,42 @@
 				 * @since 1.2.1 Don't load data from inactive modules.
 				 */
 				if ( $is_active ) {
-					$fs = freemius( $data->id );
-
-					$next_execution = $fs->next_sync_cron();
-					$last_execution = $fs->last_sync_cron();
-
-					if ( false !== $next_execution ) {
-						$scheduled_crons[ $slug ][] = array(
-							'name' => $fs->get_plugin_name(),
-							'slug' => $slug,
-							'module_type' => $fs->get_module_type(),
-							'type' => 'sync_cron',
-							'last' => $last_execution,
-							'next' => $next_execution,
-						);
+					$fs = null;
+					// Obtain the Freemius instance safely in deferred-load scenarios.
+					if ( function_exists( 'freemius' ) ) {
+						$fs = freemius( $data->id );
+					} elseif ( class_exists( 'Freemius' ) ) {
+						$fs = Freemius::instance( $data->id, $slug, true );
 					}
 
-					$next_install_execution = $fs->next_install_sync();
-					$last_install_execution = $fs->last_install_sync();
+					if ( is_object( $fs ) ) {
+						$next_execution = $fs->next_sync_cron();
+						$last_execution = $fs->last_sync_cron();
 
-					if (false !== $next_install_execution ||
-						false !== $last_install_execution
-					) {
-						$scheduled_crons[ $slug ][] = array(
-							'name' => $fs->get_plugin_name(),
-							'slug' => $slug,
-							'module_type' => $fs->get_module_type(),
-							'type' => 'install_sync',
-							'last' => $last_install_execution,
-							'next' => $next_install_execution,
-						);
+						if ( false !== $next_execution ) {
+							$scheduled_crons[ $slug ][] = array(
+								'name'        => $fs->get_plugin_name(),
+								'slug'        => $slug,
+								'module_type' => $fs->get_module_type(),
+								'type'        => 'sync_cron',
+								'last'        => $last_execution,
+								'next'        => $next_execution,
+							);
+						}
+
+						$next_install_execution = $fs->next_install_sync();
+						$last_install_execution = $fs->last_install_sync();
+
+						if ( false !== $next_install_execution || false !== $last_install_execution ) {
+							$scheduled_crons[ $slug ][] = array(
+								'name'        => $fs->get_plugin_name(),
+								'slug'        => $slug,
+								'module_type' => $fs->get_module_type(),
+								'type'        => 'install_sync',
+								'last'        => $last_install_execution,
+								'next'        => $next_install_execution,
+							);
+						}
 					}
 				}
 			}

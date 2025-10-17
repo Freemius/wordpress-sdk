@@ -12,6 +12,18 @@
 
     global $fs_active_plugins;
 
+    // Derive SDK version from the constant only. Avoid referencing $fs_active_plugins here because it may be null
+    // during deferred initialization and we only need a display value for the heading.
+    $sdk_version = defined('WP_FS__SDK_VERSION') ? (string) WP_FS__SDK_VERSION : '';
+
+    // Normalize plugins list for the SDK versions table.
+    $fs_plugins = array();
+    if ( is_object( $fs_active_plugins )
+         && isset( $fs_active_plugins->plugins )
+         && is_array( $fs_active_plugins->plugins ) ) {
+        $fs_plugins = $fs_active_plugins->plugins;
+    }
+
     $fs_options = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 
     $off_text = fs_text_x_inline( 'Off', 'as turned off' );
@@ -26,7 +38,7 @@
 
     $auto_off_timestamp = wp_next_scheduled( 'fs_debug_turn_off_logging_hook' ) * 1000;
 ?>
-<h1><?php echo fs_text_inline( 'Freemius Debug' ) . ' - ' . fs_text_inline( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
+<h1><?php echo fs_text_inline( 'Freemius Debug' ) . ' - ' . fs_text_inline( 'SDK' ) . ' v.' . esc_html( $sdk_version ) ?></h1>
 <div>
     <!-- Debugging Switch -->
     <span class="fs-switch-label"><?php fs_esc_html_echo_x_inline( 'Debugging', 'as code debugging' ) ?></span>
@@ -304,7 +316,7 @@
     </tr>
     </thead>
     <tbody>
-    <?php foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) : ?>
+    <?php foreach ( $fs_plugins as $sdk_path => $data ) : ?>
         <?php $is_active = ( WP_FS__SDK_VERSION == $data->version ) ?>
         <tr<?php if ( $is_active ) {
             echo ' style="background: #E6FFE6; font-weight: bold"';
@@ -372,17 +384,24 @@
                 <?php
                     $fs = null;
                     if ( $is_active ) {
-                        $fs = freemius( $data->id );
-
-                        $active_modules_by_id[ $data->id ] = true;
+                        if ( function_exists( 'freemius' ) ) {
+                            $fs = freemius( $data->id );
+                        } elseif ( class_exists( 'Freemius' ) ) {
+                            // Fallback for deferred loads where the helper function may not be defined yet.
+                            // We have $slug from the loop key.
+                            $fs = Freemius::instance( $data->id, $slug, true );
+                        }
+                        if ( is_object( $fs ) ) {
+                            $active_modules_by_id[ $data->id ] = true;
+                        }
                     }
                 ?>
                 <tr<?php if ( $alternate ) { echo ' class="alternate" '; } ?><?php if ( $is_active ) {
-                    $has_api_connectivity = $fs->has_api_connectivity();
+                    $has_api_connectivity = is_object( $fs ) ? $fs->has_api_connectivity() : null;
 
-                    if ( true === $has_api_connectivity && $fs->is_on() ) {
+                    if ( true === $has_api_connectivity && is_object( $fs ) && $fs->is_on() ) {
                         echo ' style="background: #E6FFE6; font-weight: bold"';
-                    } else if ( false === $has_api_connectivity || ! $fs->is_on() ) {
+                    } else if ( false === $has_api_connectivity || ( is_object( $fs ) && ! $fs->is_on() ) ) {
                         echo ' style="background: #ffd0d0; font-weight: bold"';
                     }
                 } ?>>
@@ -400,13 +419,11 @@
                                     fs_text_x_inline( 'No requests yet', 'API connectivity state is unknown' ) )
                             );
                         } ?></td>
-                    <td<?php if ( $is_active && ! $fs->is_on() ) {
+                    <td<?php if ( $is_active && is_object( $fs ) && ! $fs->is_on() ) {
                         echo ' style="color: red; text-transform: uppercase;"';
                     } ?>><?php if ( $is_active ) {
-                            echo esc_html( $fs->is_on() ?
-                                $on_text :
-                                $off_text
-                            );
+                            $is_on = ( is_object( $fs ) && $fs->is_on() );
+                            echo esc_html( $is_on ? $on_text : $off_text );
                         } ?></td>
                     <td><?php echo $data->file ?></td>
                     <td><?php echo $data->public_key ?></td>
@@ -427,7 +444,7 @@
                     <?php endif ?>
                     <td>
                         <?php if ( $is_active ) : ?>
-                            <?php if ( $fs->has_trial_plan() ) : ?>
+                            <?php if ( is_object( $fs ) && $fs->has_trial_plan() ) : ?>
                                 <form action="" method="POST">
                                     <input type="hidden" name="fs_action" value="simulate_trial">
                                     <input type="hidden" name="module_id" value="<?php echo $fs->get_id() ?>">
@@ -436,10 +453,10 @@
                                     <button type="submit" class="button button-primary simulate-trial"><?php fs_esc_html_echo_inline( 'Simulate Trial Promotion' ) ?></button>
                                 </form>
                             <?php endif ?>
-                            <?php if ( $fs->is_registered() ) : ?>
+                            <?php if ( is_object( $fs ) && $fs->is_registered() ) : ?>
                                 <a class="button" href="<?php echo $fs->get_account_url() ?>"><?php fs_esc_html_echo_inline( 'Account', 'account' ) ?></a>
                             <?php endif ?>
-                            <?php if ( fs_is_network_admin() && ! $fs->is_network_upgrade_mode() ) : ?>
+                            <?php if ( fs_is_network_admin() && is_object( $fs ) && ! $fs->is_network_upgrade_mode() ) : ?>
                                 <form action="" method="POST">
                                     <input type="hidden" name="fs_action" value="simulate_network_upgrade">
                                     <input type="hidden" name="module_id" value="<?php echo $fs->get_id() ?>">

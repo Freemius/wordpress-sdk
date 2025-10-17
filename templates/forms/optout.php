@@ -12,9 +12,24 @@
 
 	/**
 	 * @var array $VARS
-	 * @var Freemius $fs
+	 * @var Freemius|null $fs
 	 */
-	$fs   = freemius( $VARS['id'] );
+	$fs = null;
+	if ( function_exists( 'freemius' ) ) {
+		$fs = freemius( $VARS['id'] );
+	} elseif ( class_exists( 'Freemius' ) ) {
+		// Attempt to reuse an existing instance by ID if available; fall back to a no-op if unresolved.
+		// Some SDK versions expose a static getter; if not, the following will be harmless.
+		if ( method_exists( 'Freemius', 'get_instance_by_id' ) ) {
+			$fs = Freemius::get_instance_by_id( $VARS['id'] );
+		}
+	}
+
+	// If we couldn't resolve the Freemius instance, abort rendering the opt-out modal safely.
+	if ( ! is_object( $fs ) ) {
+		return;
+	}
+
 	$slug = $fs->get_slug();
 
 	$reconnect_url = $fs->get_activation_url( array(

@@ -16,8 +16,9 @@
          * @since  1.0.8
          */
         static function _add_debug_section() {
-            if ( ! is_super_admin() ) {
-                // Add debug page only for super-admins.
+            // Allow only proper admins: single-site admins or network admins in multisite.
+            $capability = fs_is_network_admin() ? 'manage_network_options' : 'manage_options';
+            if ( ! current_user_can( $capability ) ) {
                 return;
             }
 
@@ -30,20 +31,25 @@
                 $hook = FS_Admin_Menu_Manager::add_page(
                     $title,
                     $title,
-                    'manage_options',
+                    $capability,
                     'freemius',
                     array( self::class, '_debug_page_render' )
                 );
             } else {
-                // Add hidden debug page.
-                $hook = FS_Admin_Menu_Manager::add_subpage(
-                    '',
-                    $title,
-                    $title,
-                    'manage_options',
+                // Register as a top-level page and immediately hide it from the menu.
+                // This guarantees a valid screen + title while keeping the page undiscoverable via UI.
+                $hook = FS_Admin_Menu_Manager::add_page(
+                    $title, // page title
+                    $title, // menu title (will be hidden)
+                    $capability,
                     'freemius',
                     array( self::class, '_debug_page_render' )
                 );
+                if ( ! empty( $hook ) ) {
+                    add_action( ( fs_is_network_admin() ? 'network_' : '' ) . 'admin_menu', function () {
+                        remove_menu_page( 'freemius' );
+                    }, 999 );
+                }
             }
 
             if ( ! empty( $hook ) ) {
@@ -472,6 +478,8 @@
                     self::class,
                     '_add_debug_section',
                 ) );
+                // Ensure $title is never null after current screen is set (prevents PHP 8.1+ strip_tags(null) deprecation).
+                add_action( 'current_screen', array( self::class, '_ensure_admin_title_on_current_screen' ), 1, 1 );
             }
 
             add_action( "wp_ajax_fs_toggle_debug_mode", array( self::class, '_toggle_debug_mode' ) );
@@ -490,6 +498,27 @@
          */
         public static function register_hooks() {
             add_action( 'fs_debug_turn_off_logging_hook', array( self::class, '_turn_off_debug_mode' ) );
+        }
+
+        /**
+         * Ensure the global $title is a string once the current screen exists.
+         * This prevents core admin-header.php from calling strip_tags(null) on PHP 8.1+.
+         *
+         * @param WP_Screen $screen
+         * @since 2.12.2.3
+         */
+        public static function _ensure_admin_title_on_current_screen( $screen ) {
+            // $title is a core global used by admin-header.php.
+            global $title;
+            if ( null === $title ) {
+                // Try to derive a proper title from the screen; otherwise default to empty string.
+                if ( is_object( $screen ) && method_exists( $screen, 'get_title' ) ) {
+                    $derived = $screen->get_title();
+                    $title   = is_string( $derived ) ? $derived : '';
+                } else {
+                    $title = '';
+                }
+            }
         }
 
         /**
