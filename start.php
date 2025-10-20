@@ -15,7 +15,112 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.12.2.1';
+	$this_sdk_version = '2.12.2.2';
+
+	/**
+	 * Allow environments like Bedrock/Altis to opt-out of the "latest SDK" auto-loader logic,
+	 * which may execute too early (before WP is fully initialized) when Composer autoload runs.
+	 * When FS__SKIP_LATEST_SDK_LOADING is true, we skip the version resolution/bootstrap
+	 * but still expose the public API helpers so integrators can manually bootstrap later.
+	 *
+	 * @since 2.12.2.2
+	 */
+	if ( defined( 'FS__SKIP_LATEST_SDK_LOADING' ) && FS__SKIP_LATEST_SDK_LOADING && ! defined( 'FS__RUN_START_SELECTION' ) ) {
+	    if ( ! defined( 'WP_FS__SDK_VERSION' ) ) {
+	        define( 'WP_FS__SDK_VERSION', $this_sdk_version );
+	    }
+
+	    // In skip-mode avoid any WP-dependent path detection. Default to current dir.
+	    if ( ! defined( 'WP_FS__DIR' ) ) {
+	        define( 'WP_FS__DIR', dirname( __FILE__ ) );
+	    }
+        // In Bedrock-like early includes, force this SDK to be treated as NEWEST when selection logic runs.
+        if ( ! defined( 'FS__FORCE_NEWEST_SDK' ) ) {
+            define( 'FS__FORCE_NEWEST_SDK', true );
+        }
+        if ( ! defined( 'FS__FORCE_NEWEST_SDK_DIR' ) ) {
+            define( 'FS__FORCE_NEWEST_SDK_DIR', WP_FS__DIR );
+        }
+
+	    /**
+	     * Re-entry helper: when any public API is called later (from plugin main file),
+	     * re-include this file with FS__RUN_START_SELECTION so that the normal selection
+	     * logic below executes at the correct WordPress timing.
+	     */
+	    if ( ! function_exists( '__fs_ensure_start_selection_ran' ) ) {
+	        function __fs_ensure_start_selection_ran() {
+	            static $done = false;
+	            if ( $done ) return;
+
+	            if ( defined( 'FS__SKIP_LATEST_SDK_LOADING' ) && FS__SKIP_LATEST_SDK_LOADING && ! defined( 'FS__RUN_START_SELECTION' ) ) {
+	                define( 'FS__RUN_START_SELECTION', true );
+	                // Re-enter this same file; the skip-block will be bypassed and the
+	                // normal SDK selection + require.php will execute now.
+	                include __FILE__;
+	            }
+
+	            $done = true; // prevent re-entrancy
+	        }
+	    }
+
+	    // Public helpers that trigger re-entry and then defer to the real SDK API.
+	    if ( ! function_exists( 'freemius' ) ) {
+	        /**
+	         * Quick shortcut to get Freemius for specified plugin.
+	         *
+	         * @param number $module_id
+	         * @return Freemius|null
+	         */
+	        function freemius( $module_id ) {
+	            __fs_ensure_start_selection_ran();
+	            return class_exists( 'Freemius' ) ? Freemius::instance( $module_id ) : null;
+	        }
+	    }
+
+	    if ( ! function_exists( 'fs_init' ) ) {
+	        /**
+	         * @deprecated Please use fs_dynamic_init().
+	         */
+	        function fs_init( $slug, $plugin_id, $public_key, $is_live = true, $is_premium = true ) {
+	            __fs_ensure_start_selection_ran();
+	            if ( class_exists( 'Freemius' ) ) {
+	                $fs = Freemius::instance( $plugin_id, $slug, true );
+	                $fs->init( $plugin_id, $public_key, $is_live, $is_premium );
+	                return $fs;
+	            }
+	            return null;
+	        }
+	    }
+
+	    if ( ! function_exists( 'fs_dynamic_init' ) ) {
+	        /**
+	         * @param array<string,string|bool|array> $module Plugin or Theme details.
+	         * @return Freemius|null
+	         * @throws Freemius_Exception
+	         */
+	        function fs_dynamic_init( $module ) {
+	            __fs_ensure_start_selection_ran();
+	            if ( class_exists( 'Freemius' ) ) {
+	                $fs = Freemius::instance( $module['id'], $module['slug'], true );
+	                $fs->dynamic_init( $module );
+	                return $fs;
+	            }
+	            return null;
+	        }
+	    }
+
+	    if ( ! function_exists( 'fs_dump_log' ) ) {
+	        function fs_dump_log() {
+	            __fs_ensure_start_selection_ran();
+	            if ( class_exists( 'FS_Logger' ) ) {
+	                FS_Logger::dump();
+	            }
+	        }
+	    }
+
+	    // Skip the rest of start.php for now; it will run on re-entry.
+	    return;
+	}
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -226,7 +331,16 @@
             // Saving relative path and not only directory name as it could be a subfolder
             $plugin_path = $theme_name;
 		} else {
-			$plugin_path = plugin_basename( fs_find_direct_caller_plugin_file( $file_path ) );
+            $direct_caller = function_exists( 'fs_find_direct_caller_plugin_file' )
+                ? fs_find_direct_caller_plugin_file( $file_path )
+                : '';
+
+            // Fallback: if we couldn't resolve the direct caller, use this file's path.
+            if ( empty( $direct_caller ) || ! is_string( $direct_caller ) ) {
+                $direct_caller = $file_path;
+            }
+
+            $plugin_path = plugin_basename( $direct_caller );
 		}
 
 		$fs_active_plugins->plugins[ $this_sdk_relative_path ] = (object) array(
@@ -235,6 +349,13 @@
 			'timestamp'   => time(),
 			'plugin_path' => $plugin_path,
 		);
+        // If skip-mode told us to force this SDK as newest, do it now (no scanning needed).
+        if ( defined( 'FS__FORCE_NEWEST_SDK' ) && FS__FORCE_NEWEST_SDK ) {
+            fs_update_sdk_newest_version( $this_sdk_relative_path, $plugin_path );
+            $is_current_sdk_newest = true;
+            // Persist immediately to avoid races in multi-SDK environments.
+            update_option( 'fs_active_plugins', $fs_active_plugins );
+        }
 	}
 
 	$is_current_sdk_newest = isset( $fs_active_plugins->newest ) && ( $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path );
@@ -589,8 +710,10 @@
 		 *
 		 * @return Freemius
 		 */
-		function freemius( $module_id ) {
-			return Freemius::instance( $module_id );
+		if ( ! function_exists( 'freemius' ) ) {
+			function freemius( $module_id ) {
+				return Freemius::instance( $module_id );
+			}
 		}
 
 		/**
@@ -604,11 +727,13 @@
 		 *
 		 * @deprecated Please use fs_dynamic_init().
 		 */
-		function fs_init( $slug, $plugin_id, $public_key, $is_live = true, $is_premium = true ) {
-			$fs = Freemius::instance( $plugin_id, $slug, true );
-			$fs->init( $plugin_id, $public_key, $is_live, $is_premium );
+		if ( ! function_exists( 'fs_init' ) ) {
+			function fs_init( $slug, $plugin_id, $public_key, $is_live = true, $is_premium = true ) {
+				$fs = Freemius::instance( $plugin_id, $slug, true );
+				$fs->init( $plugin_id, $public_key, $is_live, $is_premium );
 
-			return $fs;
+				return $fs;
+			}
 		}
 
 		/**
@@ -617,14 +742,18 @@
 		 * @return Freemius
 		 * @throws Freemius_Exception
 		 */
-		function fs_dynamic_init( $module ) {
-			$fs = Freemius::instance( $module['id'], $module['slug'], true );
-			$fs->dynamic_init( $module );
+		if ( ! function_exists( 'fs_dynamic_init' ) ) {
+			function fs_dynamic_init( $module ) {
+				$fs = Freemius::instance( $module['id'], $module['slug'], true );
+				$fs->dynamic_init( $module );
 
-			return $fs;
+				return $fs;
+			}
 		}
 
-		function fs_dump_log() {
-			FS_Logger::dump();
+		if ( ! function_exists( 'fs_dump_log' ) ) {
+			function fs_dump_log() {
+				FS_Logger::dump();
+			}
 		}
 	}
