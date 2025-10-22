@@ -15,7 +15,142 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.12.2.1';
+	$this_sdk_version = '2.12.2.2';
+
+	/**
+	 * Minimal readiness guard: if WordPress core isn't ready yet (typical with Composer autoload in Bedrock/Altis),
+	 * provide a lightweight path that avoids the full SDK selection logic but still lets modules initialize safely.
+	 *
+	 * If not ready:
+	 * 1) Mark the current SDK as the "newest" in-memory (so consumers relying on `$fs_active_plugins->newest` won't error).
+	 * 2) Load the rest of the SDK (`require.php`).
+	 * 3) Define an alternative `fs_dynamic_init()` that proceeds with initialization.
+	 * 4) Return early to skip the centralization/selection logic for this request.
+	 */
+	$__fs_wp_ready = function_exists( 'add_action' ) && function_exists( 'apply_filters' ) && function_exists( 'get_option' );
+	if ( ! $__fs_wp_ready ) {
+		// Ensure version constant is available very early for any deferred flows.
+		if ( ! defined( 'WP_FS__SDK_VERSION' ) ) {
+			define( 'WP_FS__SDK_VERSION', $this_sdk_version );
+		}
+
+		// Provide a minimal `$fs_active_plugins` shape so later references don't break.
+		if ( ! isset( $GLOBALS['fs_active_plugins'] ) || ! is_object( $GLOBALS['fs_active_plugins'] ) ) {
+			$GLOBALS['fs_active_plugins'] = new stdClass();
+		}
+		if ( ! isset( $GLOBALS['fs_active_plugins']->plugins ) || ! is_array( $GLOBALS['fs_active_plugins']->plugins ) ) {
+			$GLOBALS['fs_active_plugins']->plugins = array();
+		}
+		if ( empty( $GLOBALS['fs_active_plugins']->newest ) ) {
+			$GLOBALS['fs_active_plugins']->newest = (object) array(
+				// We don't compute the exact sdk_path at this stage since WP helpers may not be loaded yet.
+				// A placeholder is sufficient to avoid null-access errors and indicate "current SDK".
+				'sdk_path'    => '__current__',
+				'plugin_path' => '__current__',
+				'Version'     => $this_sdk_version,
+				'version'     => $this_sdk_version,
+				'in_activation' => false,
+			);
+            $GLOBALS['fs_active_plugins']->plugins['__current__'] = (object) array(
+                'version'     => $this_sdk_version,
+                'type'        => 'plugin',        // segnaposto; verrà ricalcolato
+                'timestamp'   => time(),
+                'plugin_path' => '__current__',   // segnaposto; verrà ricalcolato
+            );
+		}
+
+		// Load the core SDK so classes (e.g., Freemius) are available.
+        require_once dirname( __FILE__ ) . '/includes/fs-essential-functions.php';
+
+		// Helpers normally defined later — define them here to keep behavior consistent when we exit early.
+		if ( ! function_exists( 'freemius' ) ) {
+			/**
+			 * Quick shortcut to get Freemius for specified plugin.
+			 *
+			 * @param number $module_id
+			 * @return Freemius
+			 */
+			function freemius( $module_id ) {
+				return Freemius::instance( $module_id );
+			}
+		}
+
+		if ( ! function_exists( 'fs_dynamic_init' ) ) {
+			/**
+			 * Alternative dynamic init used only when WP isn't fully ready yet.
+			 * It marks the current SDK as "newest" (in-memory) and proceeds with normal dynamic init.
+			 *
+			 * @param array<string,string|bool|array> $module
+			 * @return Freemius
+			 * @throws Freemius_Exception
+			 */
+			function fs_dynamic_init( $module ) {
+				// If WordPress isn't ready yet, defer this call to `init` and exit.
+				$__fs_wp_ready_now = function_exists( 'add_action' ) && function_exists( 'apply_filters' ) && function_exists( 'get_option' );
+				if ( ! $__fs_wp_ready_now ) {
+					$defer = static function () use ( $module ) {
+						// Re-enter fs_dynamic_init when WP is ready.
+						fs_dynamic_init( $module );
+					};
+					if ( function_exists( 'add_action' ) ) {
+						add_action( 'init', $defer, 0 );
+					} else {
+						// Seed the init hook for very-early Composer autoload.
+						if ( ! isset( $GLOBALS['wp_filter'] ) || ! is_array( $GLOBALS['wp_filter'] ) ) {
+							$GLOBALS['wp_filter'] = array();
+						}
+						if ( ! isset( $GLOBALS['wp_filter']['init'] ) || ! is_array( $GLOBALS['wp_filter']['init'] ) ) {
+							$GLOBALS['wp_filter']['init'] = array();
+						}
+						if ( ! isset( $GLOBALS['wp_filter']['init'][0] ) || ! is_array( $GLOBALS['wp_filter']['init'][0] ) ) {
+							$GLOBALS['wp_filter']['init'][0] = array();
+						}
+						$GLOBALS['wp_filter']['init'][0]['freemius_fs_dynamic_init'] = array(
+							'function'      => $defer,
+							'accepted_args' => 0,
+						);
+					}
+					return null;
+				}
+
+				global $fs_active_plugins;
+				// Reaffirm the minimal structure.
+				if ( ! is_object( $fs_active_plugins ) ) {
+					$fs_active_plugins = new stdClass();
+				}
+				if ( ! isset( $fs_active_plugins->plugins ) || ! is_array( $fs_active_plugins->plugins ) ) {
+					$fs_active_plugins->plugins = array();
+				}
+				if ( empty( $fs_active_plugins->newest ) ) {
+					$fs_active_plugins->newest = (object) array(
+						'sdk_path'    => '__current__',
+						'plugin_path' => '__current__',
+						'Version'     => WP_FS__SDK_VERSION,
+						'version'     => WP_FS__SDK_VERSION,
+						'in_activation' => false,
+					);
+                    $GLOBALS['fs_active_plugins']->plugins['__current__'] = (object) array(
+                        'version'     => $this_sdk_version,
+                        'type'        => 'plugin',        // segnaposto; verrà ricalcolato
+                        'timestamp'   => time(),
+                        'plugin_path' => '__current__',   // segnaposto; verrà ricalcolato
+                    );
+				}
+
+				// Load full SDK classes now that WP is ready.
+				if ( ! class_exists( 'Freemius' ) ) {
+					require_once dirname( __FILE__ ) . '/require.php';
+				}
+
+				$fs = Freemius::instance( $module['id'], $module['slug'], true );
+				$fs->dynamic_init( $module );
+				return $fs;
+			}
+		}
+
+		// Nothing else from this file should run in the not-ready state.
+		return;
+	}
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -581,17 +716,22 @@
 		// Load SDK files.
 		require_once dirname( __FILE__ ) . '/require.php';
 
-		/**
-		 * Quick shortcut to get Freemius for specified plugin.
-		 * Used by various templates.
-		 *
-		 * @param number $module_id
-		 *
-		 * @return Freemius
-		 */
-		function freemius( $module_id ) {
-			return Freemius::instance( $module_id );
-		}
+        // Helper functions wrapped in function_exists conditionals to avoid redeclaration.
+        if ( ! function_exists('freemius'))
+        {
+            /**
+             * Quick shortcut to get Freemius for specified plugin.
+             * Used by various templates.
+             *
+             * @param number $module_id
+             *
+             * @return Freemius
+             */
+            function freemius($module_id)
+            {
+                return Freemius::instance($module_id);
+            }
+        }
 
 		/**
 		 * @param string $slug
@@ -611,18 +751,22 @@
 			return $fs;
 		}
 
-		/**
-		 * @param array <string,string|bool|array> $module Plugin or Theme details.
-		 *
-		 * @return Freemius
-		 * @throws Freemius_Exception
-		 */
-		function fs_dynamic_init( $module ) {
-			$fs = Freemius::instance( $module['id'], $module['slug'], true );
-			$fs->dynamic_init( $module );
+        if ( ! function_exists('fs_dynamic_init'))
+        {
+            /**
+             * @param array <string,string|bool|array> $module Plugin or Theme details.
+             *
+             * @return Freemius
+             * @throws Freemius_Exception
+             */
+            function fs_dynamic_init($module)
+            {
+                $fs = Freemius::instance($module['id'], $module['slug'], true);
+                $fs->dynamic_init($module);
 
-			return $fs;
-		}
+                return $fs;
+            }
+        }
 
 		function fs_dump_log() {
 			FS_Logger::dump();
