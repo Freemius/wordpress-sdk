@@ -95,7 +95,10 @@
     <!-- <rule ref="PHPCompatibilityWP"/> -->
 
     <config name="testVersion" value="5.6-"/>
-    <rule ref="PHPCompatibility"/>
+    <rule ref="PHPCompatibility">
+        <exclude name="PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__serializeFound"/>
+        <exclude name="PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound"/>
+    </rule>
 
     <!--
     #############################################################################
