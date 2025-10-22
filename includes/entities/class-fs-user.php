@@ -61,6 +61,58 @@
 			}
 		}
 
+
+        /**
+         * Prepare object data for serialization.
+         * Only includes explicitly declared properties.
+         *
+         * @return array Serialized data
+         */
+        public function __serialize()
+        {
+            // Only serialize properties declared in this class.
+            $props = array('email', 'first', 'last', 'is_verified', 'customer_id', 'gross');
+            $out   = array();
+            foreach ($props as $p)
+            {
+                if (property_exists($this, $p))
+                    $out[$p] = $this->$p;
+
+            }
+
+            return $out;
+        }
+
+        /**
+         * Restore object state from serialized data.
+         * Safely populates known properties only.
+         *
+         * @param array $data Serialized data
+         *
+         * @return void
+         */
+        public function __unserialize(array $data)
+        {
+            // Populate only known properties for forward-compat and safety.
+            if (array_key_exists('email', $data))
+                $this->email = $data['email'];
+
+            if (array_key_exists('first', $data))
+                $this->first = $data['first'];
+
+            if (array_key_exists('last', $data))
+                $this->last = $data['last'];
+
+            if (array_key_exists('is_verified', $data))
+                $this->is_verified = (bool) $data['is_verified'];
+
+            if (array_key_exists('customer_id', $data))
+                $this->customer_id = $data['customer_id'];
+
+            if (array_key_exists('gross', $data))
+                $this->gross = (float) $data['gross'];
+        }
+
 		function get_name() {
 			return trim( ucfirst( trim( is_string( $this->first ) ? $this->first : '' ) ) . ' ' . ucfirst( trim( is_string( $this->last ) ? $this->last : '' ) ) );
 		}
