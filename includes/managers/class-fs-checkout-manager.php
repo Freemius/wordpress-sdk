@@ -153,12 +153,37 @@
 				( $fs->is_theme() && current_user_can( 'install_themes' ) )
 			);
 
-            // Add developer-defined checkout overrides directly to context.
-            foreach ( $fs->get_checkout_config() as $key => $value ) {
-                $context_params[ $key ] = $value;
-            }
+            /**
+             * Allow developers to customize the checkout query params before final validation,
+             * so custom keys can be included and known keys can be overridden.
+             * We then validate the merged params and re-attach any unknown custom keys that
+             * validation intentionally ignores, preserving developer-provided extras while
+             * keeping core keys safe.
+             *
+             * Usage example (in a plugin/theme):
+             *
+             *     add_filter( 'fs_checkout_query_params_' . fs()->get_unique_affix(), function( $params ) {
+             *         // Add or modify query params passed to the Freemius Checkout.
+             *         $params['coupon'] = 'WELCOME10';
+             *         $params['utm_source'] = 'my-plugin';
+             *         return $params;
+             *     }, 10, 5 );
+             *
+             * @since 2.12.1.3
+             *
+             * @param array     $context_params The params prepared by the SDK before validation.
+             * @param Freemius  $fs            The Freemius instance of the calling module.
+             * @param int|mixed $plugin_id     The target plugin/add-on ID for the checkout context.
+             * @param int|mixed $plan_id       The selected plan ID (if any).
+             * @param int|mixed $licenses      The requested number of licenses (if provided).
+             */
+            $filtered_params = fs_apply_filter(
+                $fs->get_unique_affix(),
+                'checkout_query_params',
+                $context_params
+            );
 
-			return array_merge( $context_params, $_GET, array(
+			return array_merge( $filtered_params, $_GET, array(
 				// Current plugin version.
 				'plugin_version' => $fs->get_plugin_version(),
 				'sdk_version'    => WP_FS__SDK_VERSION,

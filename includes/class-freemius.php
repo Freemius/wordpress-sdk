@@ -365,15 +365,6 @@
          */
         private $_is_bundle_license_auto_activation_enabled = false;
 
-        /**
-         * Developer-defined config overrides for checkout.
-         *
-         * @var array
-         */
-        protected $_checkout_config = [];
-
-        /**
-
         #region Uninstall Reasons IDs
 
         const REASON_NO_LONGER_NEEDED = 1;
@@ -5190,9 +5181,6 @@
                 ) );
             }
 
-            // Extracts, validate and save checkout-specific settings.
-            $this->_checkout_config = $this->validate_checkout_config( $plugin_info );
-
             $plugin = ( $this->_plugin instanceof FS_Plugin ) ?
                 $this->_plugin :
                 new FS_Plugin();
@@ -5332,88 +5320,6 @@
                     self::NAVIGATION_TABS :
                     self::NAVIGATION_MENU
             );
-        }
-
-        /**
-         * Validates and filters developer-provided checkout config.
-         *
-         * @param array $config
-         *
-         * @return array
-         */
-        protected function validate_checkout_config($config)
-        {
-            $schema = array(
-                // currency
-                'currency'                      => 'string',
-                'default_currency'              => 'string',
-                // cart
-                'always_show_renewals_amount'   => 'bool',
-                'annual_discount'               => 'bool',
-                'billing_cycle'                 => ['string', 'int'],
-                'bundle_discount'               => 'float',
-                'maximize_discounts'            => 'bool',
-                'multisite_discount'            => ['bool', 'string'], // string expected to be "auto"
-                'show_inline_currency_selector' => 'bool',
-                'show_monthly'                  => 'bool',
-                // appearance
-                'form_position'                 => 'string',
-                'is_bundle_collapsed'           => 'bool',
-                'layout'                        => 'string',
-                'refund_policy_position'        => 'string',
-                'show_refund_badge'             => 'bool',
-                'show_reviews'                  => 'bool',
-                'show_upsells'                  => 'bool',
-                'title'                         => 'string',
-            );
-
-            $result = array();
-
-            foreach ($schema as $key => $expected_type)
-            {
-                if (array_key_exists($key, $config))
-                {
-                    $value = $config[$key];
-                    $types = is_array($expected_type) ? $expected_type : [$expected_type];
-                    $valid = false;
-
-                    foreach ($types as $type)
-                    {
-                        switch ($type)
-                        {
-                            case 'bool':
-                                if (is_bool($value))
-                                    $valid = true;
-                                break;
-                            case 'string':
-                                if (is_string($value))
-                                    $valid = true;
-                                break;
-                            case 'int':
-                                if (is_int($value))
-                                    $valid = true;
-                                break;
-                            case 'float':
-                                if (is_float($value) || is_int($value))
-                                    $valid = true;
-                                break;
-                        }
-                    }
-
-                    if ($valid)
-                        $result[$key] = $value;
-                }
-            }
-
-            return $result;
-        }
-
-        /**
-         * @return array
-         */
-        public function get_checkout_config()
-        {
-            return $this->_checkout_config;
         }
 
         /**
