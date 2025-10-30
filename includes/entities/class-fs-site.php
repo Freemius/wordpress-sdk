@@ -220,6 +220,8 @@
             // Services aimed at providing a WordPress sandbox environment.
             $sandbox_wp_environment_domains = array(
                 // InstaWP
+                'instawp.co',
+                'instawp.link',
                 'instawp.xyz',
 
                 // TasteWP
