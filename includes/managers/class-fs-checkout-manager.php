@@ -12,7 +12,35 @@
 
 	class FS_Checkout_Manager {
 
-		# region Singleton
+        /**
+         * Allowlist of query parameters for checkout.
+         */
+        private $_allowed_custom_params = array(
+            // currency
+            'currency'                      => 'string',
+            'default_currency'              => 'string',
+            // cart
+            'always_show_renewals_amount'   => 'bool',
+            'annual_discount'               => 'bool',
+            'billing_cycle'                 => ['string', 'int'],
+            'bundle_discount'               => 'float',
+            'maximize_discounts'            => 'bool',
+            'multisite_discount'            => ['bool', 'string'], // string expected to be "auto"
+            'show_inline_currency_selector' => 'bool',
+            'show_monthly'                  => 'bool',
+            // appearance
+            'form_position'                 => 'string',
+            'is_bundle_collapsed'           => 'bool',
+            'layout'                        => 'string',
+            'refund_policy_position'        => 'string',
+            'show_refund_badge'             => 'bool',
+            'show_reviews'                  => 'bool',
+            'show_upsells'                  => 'bool',
+            'title'                         => 'string',
+        );
+
+
+        # region Singleton
 
 		/**
 		 * @var FS_Checkout_Manager
@@ -169,7 +197,7 @@
              *         return $params;
              *     }, 10, 5 );
              *
-             * @since 2.12.1.3
+             * @since 2.12.2.4
              *
              * @param array     $context_params The params prepared by the SDK before validation.
              * @param Freemius  $fs            The Freemius instance of the calling module.
@@ -183,7 +211,10 @@
                 $context_params
             );
 
-			return array_merge( $filtered_params, $_GET, array(
+            // Allowlist only allowed query params.
+            $filtered_params = array_intersect_key($filtered_params, $this->_allowed_custom_params);
+
+            return array_merge( $context_params, $filtered_params, $_GET, array(
 				// Current plugin version.
 				'plugin_version' => $fs->get_plugin_version(),
 				'sdk_version'    => WP_FS__SDK_VERSION,
