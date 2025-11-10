@@ -17,26 +17,27 @@
          */
         private $_allowed_custom_params = array(
             // currency
-            'currency'                      => 'string',
-            'default_currency'              => 'string',
+            'currency'                      => true,
+            'default_currency'              => true,
             // cart
-            'always_show_renewals_amount'   => 'bool',
-            'annual_discount'               => 'bool',
-            'billing_cycle'                 => ['string', 'int'],
-            'bundle_discount'               => 'float',
-            'maximize_discounts'            => 'bool',
-            'multisite_discount'            => ['bool', 'string'], // string expected to be "auto"
-            'show_inline_currency_selector' => 'bool',
-            'show_monthly'                  => 'bool',
+            'always_show_renewals_amount'   => true,
+            'annual_discount'               => true,
+            'billing_cycle'                 => true,
+            'billing_cycle_selector'        => true,
+            'bundle_discount'               => true,
+            'maximize_discounts'            => true,
+            'multisite_discount'            => true,
+            'show_inline_currency_selector' => true,
+            'show_monthly'                  => true,
             // appearance
-            'form_position'                 => 'string',
-            'is_bundle_collapsed'           => 'bool',
-            'layout'                        => 'string',
-            'refund_policy_position'        => 'string',
-            'show_refund_badge'             => 'bool',
-            'show_reviews'                  => 'bool',
-            'show_upsells'                  => 'bool',
-            'title'                         => 'string',
+            'form_position'                 => true,
+            'is_bundle_collapsed'           => true,
+            'layout'                        => true,
+            'refund_policy_position'        => true,
+            'show_refund_badge'             => true,
+            'show_reviews'                  => true,
+            'show_upsells'                  => true,
+            'title'                         => true,
         );
 
 
@@ -181,35 +182,7 @@
 				( $fs->is_theme() && current_user_can( 'install_themes' ) )
 			);
 
-            /**
-             * Allow developers to customize the checkout query params before final validation,
-             * so custom keys can be included and known keys can be overridden.
-             * We then validate the merged params and re-attach any unknown custom keys that
-             * validation intentionally ignores, preserving developer-provided extras while
-             * keeping core keys safe.
-             *
-             * Usage example (in a plugin/theme):
-             *
-             *     add_filter( 'fs_checkout_query_params_' . fs()->get_unique_affix(), function( $params ) {
-             *         // Add or modify query params passed to the Freemius Checkout.
-             *         $params['coupon'] = 'WELCOME10';
-             *         $params['utm_source'] = 'my-plugin';
-             *         return $params;
-             *     }, 10, 5 );
-             *
-             * @since 2.12.2.4
-             *
-             * @param array     $context_params The params prepared by the SDK before validation.
-             * @param Freemius  $fs            The Freemius instance of the calling module.
-             * @param int|mixed $plugin_id     The target plugin/add-on ID for the checkout context.
-             * @param int|mixed $plan_id       The selected plan ID (if any).
-             * @param int|mixed $licenses      The requested number of licenses (if provided).
-             */
-            $filtered_params = fs_apply_filter(
-                $fs->get_unique_affix(),
-                'checkout_query_params',
-                $context_params
-            );
+            $filtered_params = $fs->apply_filters('checkout/parameters', $context_params);
 
             // Allowlist only allowed query params.
             $filtered_params = array_intersect_key($filtered_params, $this->_allowed_custom_params);

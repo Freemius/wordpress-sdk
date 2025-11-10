@@ -446,6 +446,7 @@
 	 *      fs_plugin_icon_{plugin_slug}
 	 *      fs_show_trial_{plugin_slug}
 	 *      fs_is_pricing_page_visible_{plugin_slug}
+	 *      fs_checkout/parameters_{plugin_slug}
 	 *
 	 * --------------------------------------------------------
 	 *
