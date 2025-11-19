@@ -59,7 +59,7 @@
 		'next'             => $fs->_get_sync_license_url( false, false ),
 		'plugin_version'   => $fs->get_plugin_version(),
 		// Billing cycle.
-		'billing_cycle'    => fs_request_get( 'billing_cycle', WP_FS__PERIOD_ANNUALLY ),
+		'billing_cycle'    => fs_request_get( 'pricing/billing_cycle', $fs->apply_filters( 'pricing/billing_cycle', WP_FS__PERIOD_ANNUALLY ) ),
 		'is_network_admin' => fs_is_network_admin() ? 'true' : 'false',
         'currency'         => $fs->apply_filters( 'default_currency', 'usd' ),
         'discounts_model'  => $fs->apply_filters( 'pricing/discounts_model', 'absolute' ),
