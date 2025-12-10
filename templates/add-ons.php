@@ -50,28 +50,7 @@
 
 		<?php $fs->do_action( 'addons/after_title' ) ?>
 
-        <?php
-            if (defined('WP_FS__DEV_MODE') && WP_FS__DEV_MODE && ! $fs->has_secret_key()) :
-    $integration_url = 'https://dashboard.freemius.com/#!/live/plugins/' . $fs->get_id() . '/integration/';
-    $secret_const    = 'WP_FS__' . $slug . '_SECRET_KEY';
-        ?>
-    <div class="notice notice-warning">
-        <?php echo sprintf(
-            /* translators: %s: constant name to add into wp-config.php */
-            '<p>You have enabled <code>WP_FS__DEV_MODE</code>, but no secret key is defined for this plugin. As a result, add-ons that are not publicly released yet, or that do not have publicly visible pricing, will not appear in the list below.</p>
-            <p>To configure your development environment properly, add the <code>%s</code> constant to your wp-config.php, then reload this page.
-            <a href="%s" target="_blank" rel="noopener">%s</a></p>',
-            $secret_const,
-            esc_url( $integration_url ),
-            esc_html( fs_text_inline( 'Read the integration guide', 'read-integration-guide', $slug ) )
-        ); ?>
-    </div>
-        <?php
-            endif;
-            ?>
-
-
-        <div id="poststuff">
+		<div id="poststuff">
 			<?php if ( ! $has_addons ) : ?>
 				<h3><?php echo esc_html( sprintf(
 						'%s... %s',

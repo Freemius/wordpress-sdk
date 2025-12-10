@@ -13,14 +13,23 @@
     $odd      = $VARS['odd'];
     $slug     = $fs->get_slug();
 
-    $fs_blog_id = $VARS['fs_blog_id'];
+    $fs_blog_id = isset( $VARS['fs_blog_id'] ) ? $VARS['fs_blog_id'] : null;
 
-    $active_plugins_directories_map = $VARS['active_plugins_directories_map'];
+    $active_plugins_directories_map = isset( $VARS['active_plugins_directories_map'] ) && is_array( $VARS['active_plugins_directories_map'] )
+        ? $VARS['active_plugins_directories_map']
+        : array();
 
-    $addon_info         = $VARS['addon_info'];
+    // Make sure addon info is always an array to avoid undefined index notices.
+    $addon_info = ( isset( $VARS['addon_info'] ) && is_array( $VARS['addon_info'] ) )
+        ? $VARS['addon_info']
+        : array();
+
     $is_addon_activated = $fs->is_addon_activated( $addon_id );
-    $is_addon_connected = $addon_info['is_connected'];
-    $is_addon_installed = $VARS['is_addon_installed'];
+
+    // If the 'is_connected' key is missing, default to false.
+    $is_addon_connected = isset( $addon_info['is_connected'] ) ? (bool) $addon_info['is_connected'] : false;
+
+    $is_addon_installed = ! empty( $VARS['is_addon_installed'] );
 
     $fs_addon = ( $is_addon_connected && $is_addon_installed ) ?
         freemius( $addon_id ) :
@@ -65,7 +74,7 @@
     $subscription           = null;
     $is_paying              = false;
     $show_upgrade           = false;
-    $is_whitelabeled        = $VARS['is_whitelabeled'];
+    $is_whitelabeled        = ! empty( $VARS['is_whitelabeled'] );
 
     if ( is_object( $fs_addon ) ) {
         $is_paying                  = $fs_addon->is_paying();
@@ -132,7 +141,7 @@
                 ( $site->trial_plan_id == $license->plan_id )
             );
 
-            $is_whitelabeled = $addon_info['is_whitelabeled'];
+            $is_whitelabeled = isset( $addon_info['is_whitelabeled'] ) ? (bool) $addon_info['is_whitelabeled'] : false;
         }
     }
 
