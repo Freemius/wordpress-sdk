@@ -6558,11 +6558,7 @@
             $next_schedule = $this->next_sync_cron();
 
             // The event is properly scheduled, so no need to reschedule it.
-            if (
-                is_numeric( $next_schedule ) &&
-                // Add 1-hour grace period to avoid race conditions.
-                ( $next_schedule + ( WP_FS__TIME_24_HOURS_IN_SEC / 24 ) ) > time()
-            ) {
+            if ( is_numeric( $next_schedule ) ) {
                 return;
             }
 
