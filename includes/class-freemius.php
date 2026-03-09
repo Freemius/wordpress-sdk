@@ -6558,10 +6558,7 @@
             $next_schedule = $this->next_sync_cron();
 
             // The event is properly scheduled, so no need to reschedule it.
-            if (
-                is_numeric( $next_schedule ) &&
-                $next_schedule > time()
-            ) {
+            if ( is_numeric( $next_schedule ) ) {
                 return;
             }
 
