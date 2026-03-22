@@ -17432,7 +17432,7 @@
                 FS_User_Lock::instance()->unlock();
             }
 
-            if ( 1 < count( $installs ) ) {
+            if ( 1 < count( $installs ) || fs_is_network_admin() ) {
                 // Only network level opt-in can have more than one install.
                 $is_network_level_opt_in = true;
             }
