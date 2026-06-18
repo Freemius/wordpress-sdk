@@ -13616,7 +13616,11 @@
          */
         function is_migration() {
             if ( $this->is_addon() ) {
-                return $this->get_parent_instance()->is_migration();
+                $parent_instance = $this->get_parent_instance();
+                if ( is_object( $parent_instance ) ) {
+                    return $parent_instance->is_migration();
+                }
+                return false;
             }
 
             if ( empty( $this->_storage->license_migration ) ) {
