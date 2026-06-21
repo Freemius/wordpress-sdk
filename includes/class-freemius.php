@@ -3460,8 +3460,8 @@
 
             FS_DebugManager::load_required_static();
 
-            if ( 0 == did_action( 'plugins_loaded' ) ) {
-                add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
+            if (is_admin()) {
+                add_action( 'init', array( 'Freemius', '_load_textdomain' ), 1 );
             }
 
             $clone_manager = FS_Clone_Manager::instance();
@@ -3686,10 +3686,6 @@
          * @since  1.2.1
          */
         static function _load_textdomain() {
-            if ( ! is_admin() ) {
-                return;
-            }
-
             global $fs_active_plugins;
 
             // Works both for plugins and themes.
