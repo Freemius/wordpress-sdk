@@ -93,20 +93,43 @@
 	$themes_directory      = fs_normalize_path( get_theme_root( get_stylesheet() ) );
 	$themes_directory_name = basename( $themes_directory );
 
-    // This change ensures that the condition works even if the SDK is located in a subdirectory (e.g., vendor)
-    $theme_candidate_sdk_basename = str_replace( $themes_directory . '/' . get_stylesheet() . '/', '', $fs_root_path );
+	$active_theme_directory = fs_normalize_path( $themes_directory . '/' . get_stylesheet() );
+	$active_theme_realpath  = fs_normalize_path( realpath( $active_theme_directory ) );
+	if ( ! $active_theme_realpath ) {
+		$active_theme_realpath = $active_theme_directory;
+	}
 
-    // Check if the current file is part of the active theme.
-    $is_current_sdk_from_active_theme = $file_path == $themes_directory . '/' . get_stylesheet() . '/' . $theme_candidate_sdk_basename . '/' . basename( $file_path );
-    $is_current_sdk_from_parent_theme = false;
+	$parent_theme_directory = fs_normalize_path( $themes_directory . '/' . get_template() );
+	$parent_theme_realpath  = fs_normalize_path( realpath( $parent_theme_directory ) );
+	if ( ! $parent_theme_realpath ) {
+		$parent_theme_realpath = $parent_theme_directory;
+	}
 
-    // Check if the current file is part of the parent theme.
-    if ( ! $is_current_sdk_from_active_theme ) {
-        $theme_candidate_sdk_basename     = str_replace( $themes_directory . '/' . get_template() . '/',
-            '',
-            $fs_root_path );
-        $is_current_sdk_from_parent_theme = $file_path == $themes_directory . '/' . get_template() . '/' . $theme_candidate_sdk_basename . '/' . basename( $file_path );
-    }
+	$file_path_real = fs_normalize_path( realpath( $file_path ) );
+	if ( ! $file_path_real ) {
+		$file_path_real = $file_path;
+	}
+
+	$fs_root_path_real = fs_normalize_path( realpath( $fs_root_path ) );
+	if ( ! $fs_root_path_real ) {
+		$fs_root_path_real = $fs_root_path;
+	}
+
+	$theme_candidate_sdk_basename     = '';
+	$is_current_sdk_from_active_theme = false;
+	$is_current_sdk_from_parent_theme = false;
+
+	// Check if the current file is part of the active theme.
+	if ( 0 === strpos( $fs_root_path_real, $active_theme_realpath . '/' ) ) {
+		$theme_candidate_sdk_basename     = substr( $fs_root_path_real, strlen( $active_theme_realpath ) + 1 );
+		$is_current_sdk_from_active_theme = ( $file_path_real === $active_theme_realpath . '/' . $theme_candidate_sdk_basename . '/' . basename( $file_path ) );
+	}
+
+	// Check if the current file is part of the parent theme.
+	if ( ! $is_current_sdk_from_active_theme && 0 === strpos( $fs_root_path_real, $parent_theme_realpath . '/' ) ) {
+		$theme_candidate_sdk_basename      = substr( $fs_root_path_real, strlen( $parent_theme_realpath ) + 1 );
+		$is_current_sdk_from_parent_theme  = ( $file_path_real === $parent_theme_realpath . '/' . $theme_candidate_sdk_basename . '/' . basename( $file_path ) );
+	}
 
     $theme_name = null;
     if ( $is_current_sdk_from_active_theme ) {
