@@ -133,17 +133,16 @@
         /**
          * @return bool
          */
-        function has_presentment() {
-            return (
-                is_object( $this->presentment ) &&
-                ! empty( $this->presentment->currency )
-            );
+        function has_presentment()
+        {
+            return is_object($this->presentment);
         }
 
         /**
          * @return float
          */
-        function get_display_gross() {
+        function get_display_gross()
+        {
             return $this->has_presentment() ?
                 (float) $this->presentment->gross :
                 (float) $this->gross;
@@ -152,7 +151,8 @@
         /**
          * @return float
          */
-        function get_display_vat() {
+        function get_display_vat()
+        {
             return $this->has_presentment() ?
                 (float) $this->presentment->vat :
                 (float) $this->vat;
@@ -161,7 +161,8 @@
         /**
          * @return string
          */
-        function get_display_currency() {
+        function get_display_currency()
+        {
             return $this->has_presentment() ?
                 $this->presentment->currency :
                 $this->currency;

@@ -77,22 +77,8 @@
 			$query_params = $this->get_query_params( $fs );
 
 			$query_params['is_standalone'] = 'true';
-			$parent_url = admin_url();
-
-			if ( isset( $_SERVER['REQUEST_URI'] ) ) {
-				$request_uri = esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) );
-				$admin_path  = wp_parse_url( admin_url(), PHP_URL_PATH );
-
-				if ( is_string( $admin_path ) && '' !== $admin_path && 0 === strpos( $request_uri, $admin_path ) ) {
-					$request_uri = ltrim( substr( $request_uri, strlen( $admin_path ) ), '/' );
-				} else {
-					$request_uri = ltrim( $request_uri, '/' );
-				}
-
-				$parent_url = admin_url( $request_uri );
-			}
-
-			$query_params['parent_url'] = $parent_url;
+			// Intentionally using add_query_arg( '', '' ) to preserve the legacy behavior of resolving the current admin URL.
+			$query_params['parent_url']    = admin_url( add_query_arg( '', '' ) );
 
 			return WP_FS__ADDRESS . '/contact/?' . http_build_query( $query_params );
 		}
