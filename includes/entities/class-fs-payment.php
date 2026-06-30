@@ -95,7 +95,7 @@
         const CURRENCY_ILS = 'ils';
         const CURRENCY_CAD = 'cad';
         const CURRENCY_AUD = 'aud';
-        CONST CURRENCY_PLN = 'pln';
+        const CURRENCY_PLN = 'pln';
 
         /**
          * @param object|bool $payment
