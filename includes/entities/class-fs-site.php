@@ -119,7 +119,7 @@
         function __construct( $site = false ) {
             parent::__construct( $site );
 
-            if ( is_object( $site ) ) {
+            if ( is_object( $site ) && isset( $site->plan_id ) ) {
                 $this->plan_id = $site->plan_id;
             }
 

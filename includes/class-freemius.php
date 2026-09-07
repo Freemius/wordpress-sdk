@@ -19869,8 +19869,10 @@
 
             // Copy plans.
             $encrypted_plans = array();
-            for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
-                $encrypted_plans[] = self::_encrypt_entity( $this->_plans[ $i ] );
+            if ( is_array( $this->_plans ) ) {
+                for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
+                    $encrypted_plans[] = self::_encrypt_entity( $this->_plans[ $i ] );
+                }
             }
 
             $plans[ $this->_slug ] = $encrypted_plans;
