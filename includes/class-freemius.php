@@ -2280,20 +2280,35 @@
                 ) {
                     if ( 'activate_plugin' === $bt[ $i ]['function'] ) {
                         /**
-                         * Store the directory of the activator plugin so that any other file that starts with it
-                         * cannot be mistakenly chosen as a candidate caller file.
+                         * If a plugin is programmatically activated with the following call stack: "PluginX -> ThemeX -> activate_plugin(PluginY)", then the `for` below makes sure that `$plugin_dir_to_skip` will be set to the plugin's dir. Otherwise, the SDK will pick up PluginX's main file as the main file of PluginY. This is relevant for companion theme plugins that can install plugins (that use Freemius) when importing starter sites.
                          *
-                         * @author Leo Fajardo
-                         *
-                         * @since 2.3.0
+                         * @since 2.5.3
                          */
-                        $caller_file_path = fs_normalize_path( $bt[ $i ]['file'] );
+                        for ( $j = $i; $j < $len; $j ++ ) {
+                            if ( empty( $bt[ $j ]['file'] ) ) {
+                                continue;
+                            }
 
-                        foreach ( $all_plugins_paths as $plugin_path ) {
-                            $plugin_dir = fs_normalize_path( dirname( $plugin_path ) . '/' );
-                            if ( false !== strpos( $caller_file_path, $plugin_dir ) ) {
-                                $plugin_dir_to_skip = $plugin_dir;
+                            /**
+                             * Store the directory of the activator plugin so that any other file that starts with it
+                             * cannot be mistakenly chosen as a candidate caller file.
+                             *
+                             * @author Leo Fajardo
+                             *
+                             * @since  2.3.0
+                             */
+                            $caller_file_path = fs_normalize_path( $bt[ $j ]['file'] );
 
+                            foreach ( $all_plugins_paths as $plugin_path ) {
+                                $plugin_dir = fs_normalize_path( dirname( $plugin_path ) . '/' );
+                                if ( false !== strpos( $caller_file_path, $plugin_dir ) ) {
+                                    $plugin_dir_to_skip = $plugin_dir;
+
+                                    break;
+                                }
+                            }
+
+                            if ( ! empty( $plugin_dir_to_skip ) ) {
                                 break;
                             }
                         }
