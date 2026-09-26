@@ -7834,15 +7834,18 @@
                     continue;
                 }
 
-                if (
-                    ! $fs->is_addon() &&
-                    ! FS_Plan_Manager::instance()->has_paid_plan( $fs->_plans )
-                ) {
+                if ( ! $fs->is_addon() && $fs->has_bundle_context() && $fs->is_registered() ) {
                     /**
                      * The parent product can be free-only but can have its `has_paid_plan` flag set to `true` when
-                     * there is a context bundle.
+                     * there is a context bundle. Ensure plans are synced before checking.
                      */
-                    continue;
+                    if ( empty( $fs->_plans ) ) {
+                        $fs->_sync_plans();
+                    }
+
+                    if ( ! FS_Plan_Manager::instance()->has_paid_plan( $fs->_plans ) ) {
+                        continue;
+                    }
                 }
 
                 if ( $current_blog_id > 0 ) {
