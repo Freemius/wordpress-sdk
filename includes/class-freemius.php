@@ -17564,6 +17564,11 @@
                 return;
             }
 
+            // Only site administrators who can activate plugins may opt-in.
+            if ( ! $this->is_user_admin() ) {
+                return;
+            }
+
             $has_pending_activation_confirmation_param = fs_request_has( 'pending_activation' );
 
             $this->update_license_required_permissions_if_anonymous();
