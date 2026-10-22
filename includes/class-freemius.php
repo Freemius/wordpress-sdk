@@ -9971,7 +9971,7 @@
         function get_slug() {
             if ( ! isset( $this->_slug ) ) {
                 $id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
-                $this->_slug           = $id_slug_type_path_map[ $this->_module_id ]['slug'];
+                $this->_slug           = isset($id_slug_type_path_map[ $this->_module_id ]['slug']) ? $id_slug_type_path_map[ $this->_module_id ]['slug'] : null;
             }
 
             return $this->_slug;
@@ -14925,7 +14925,7 @@
         function get_module_type() {
             if ( ! isset( $this->_module_type ) ) {
                 $id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
-                $this->_module_type    = $id_slug_type_path_map[ $this->_module_id ]['type'];
+                $this->_module_type    = isset($id_slug_type_path_map[ $this->_module_id ]['type']) ? $id_slug_type_path_map[ $this->_module_id ]['type'] : null;
             }
 
             return $this->_module_type;
