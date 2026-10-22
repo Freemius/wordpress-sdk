@@ -120,7 +120,10 @@
             parent::__construct( $site );
 
             if ( is_object( $site ) ) {
-                $this->plan_id = $site->plan_id;
+                // The install payload can arrive without `plan_id` (e.g. a fresh/new-user
+                // connection of a product without paid plans), which raised an
+                // "Undefined property: stdClass::$plan_id" warning on PHP 8.
+                $this->plan_id = isset( $site->plan_id ) ? $site->plan_id : null;
             }
 
             if ( ! is_bool( $this->is_disconnected ) ) {

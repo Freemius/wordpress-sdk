@@ -19855,8 +19855,15 @@
 
             // Copy plans.
             $encrypted_plans = array();
-            for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
-                $encrypted_plans[] = self::_encrypt_entity( $this->_plans[ $i ] );
+
+            // `_plans` defaults to `false` and is only assigned once the account carries a plan
+            // list (`_set_account()` skips the assignment when `$plans === false`). On a fresh
+            // first opt-in of a product without paid plans it can therefore still be `false` here,
+            // and `count( false )` is a fatal TypeError on PHP 8. Treat a missing list as empty.
+            $plans_to_encrypt = is_array( $this->_plans ) ? $this->_plans : array();
+
+            for ( $i = 0, $len = count( $plans_to_encrypt ); $i < $len; $i ++ ) {
+                $encrypted_plans[] = self::_encrypt_entity( $plans_to_encrypt[ $i ] );
             }
 
             $plans[ $this->_slug ] = $encrypted_plans;
