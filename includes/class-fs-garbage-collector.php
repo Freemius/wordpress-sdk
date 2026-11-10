@@ -397,7 +397,9 @@
                 $user_cleaner->clean();
             }
 
-            // @todo - We need a garbage collector for `all_plugins` and `active_plugins` (and variants of themes).
+            foreach ( array( 'active_plugins', 'all_plugins', 'all_themes' ) as $key ) {
+                $_accounts->unset_option($key);
+            }
 
             // Always store regardless of whether there were cleaned products or not since during the process, the logic may set the last load timestamp of some products.
             $_accounts->store();

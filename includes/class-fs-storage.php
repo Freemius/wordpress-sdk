@@ -17,7 +17,6 @@
      *
      * @property bool        $is_network_activation
      * @property int         $network_install_blog_id
-     * @property bool|null   $is_extensions_tracking_allowed
      * @property bool|null   $is_diagnostic_tracking_allowed
      * @property object      $sync_cron
      * @property bool|int    $install_timestamp

@@ -36,7 +36,6 @@
         const PERMISSION_EVENTS     = 'events';
         const PERMISSION_ESSENTIALS = 'essentials';
         const PERMISSION_DIAGNOSTIC = 'diagnostic';
-        const PERMISSION_EXTENSIONS = 'extensions';
         const PERMISSION_NEWSLETTER = 'newsletter';
 
         /**
@@ -72,7 +71,6 @@
                 self::PERMISSION_EVENTS,
                 self::PERMISSION_ESSENTIALS,
                 self::PERMISSION_DIAGNOSTIC,
-                self::PERMISSION_EXTENSIONS,
                 self::PERMISSION_NEWSLETTER,
             );
         }
@@ -84,7 +82,6 @@
             return array(
                 self::PERMISSION_USER,
                 self::PERMISSION_SITE,
-                self::PERMISSION_EXTENSIONS,
             );
         }
 
@@ -160,14 +157,7 @@
             $load_default_from_storage = false,
             $is_optional = false
         ) {
-            return array_merge(
-                $this->get_opt_in_diagnostic_permissions( $load_default_from_storage, $is_optional ),
-                array( $this->get_extensions_permission(
-                    false,
-                    false,
-                    $load_default_from_storage
-                ) )
-            );
+            return $this->get_opt_in_diagnostic_permissions( $load_default_from_storage, $is_optional );
         }
 
         /**
@@ -306,7 +296,6 @@
         ) {
             return array(
                 $this->get_diagnostic_permission( $include_optional_label, $load_default_from_storage ),
-                $this->get_extensions_permission( true, $include_optional_label, $load_default_from_storage ),
             );
         }
 
@@ -342,33 +331,6 @@
         #--------------------------------------------------------------------------------
         #region Common Permissions
         #--------------------------------------------------------------------------------
-
-        /**
-         * @param bool $is_license_activation
-         * @param bool $include_optional_label
-         * @param bool $load_default_from_storage
-         *
-         * @return array
-         */
-        function get_extensions_permission(
-            $is_license_activation,
-            $include_optional_label = false,
-            $load_default_from_storage = false
-        ) {
-            $is_on_by_default = ! $is_license_activation;
-
-            return $this->get_permission(
-                self::PERMISSION_EXTENSIONS,
-                'block-default',
-                $this->_fs->get_text_inline( 'View Plugins & Themes List', 'permissions-extensions' ) . ( $is_license_activation ? ( $include_optional_label ? ' (' . $this->_fs->get_text_inline( 'optional' ) . ')' : '' ) : '' ),
-                $this->_fs->get_text_inline( 'Names, slugs, versions, and if active or not', 'permissions-extensions_desc' ),
-                $this->_fs->get_text_inline( 'To ensure compatibility and avoid conflicts with your installed plugins and themes.', 'permissions-events_tooltip' ),
-                25,
-                true,
-                $is_on_by_default,
-                $load_default_from_storage
-            );
-        }
 
         /**
          * @param bool $load_default_from_storage
@@ -414,15 +376,6 @@
         #--------------------------------------------------------------------------------
         #region Permissions Storage
         #--------------------------------------------------------------------------------
-
-        /**
-         * @param int|null $blog_id
-         *
-         * @return bool
-         */
-        function is_extensions_tracking_allowed( $blog_id = null ) {
-            return $this->is_permission_allowed( self::PERMISSION_EXTENSIONS, ! $this->_fs->is_premium(), $blog_id );
-        }
 
         /**
          * @param int|null $blog_id
@@ -586,14 +539,6 @@
          * @return bool
          */
         function get_permission_default( $permission ) {
-            if (
-                $this->_fs->is_premium() &&
-                self::PERMISSION_EXTENSIONS === $permission
-            ) {
-                return false;
-            }
-
-            // All permissions except for the extensions in paid version are on by default when the user opts in to usage tracking.
             return true;
         }
 

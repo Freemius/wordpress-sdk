@@ -32,11 +32,6 @@
 	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
 
     if ( ! $permission_manager->is_premium_context() ) {
-        $optional_permissions = array( $permission_manager->get_extensions_permission( false,
-            false,
-            true
-        ) );
-
         $permission_groups = array(
             array(
                 'id'          => 'communication',
@@ -75,13 +70,6 @@
                     ),
                 ),
                 'prompt_cancel_label' => $fs->get_text_inline( 'Keep Sharing', 'keep-sharing' )
-            ),
-            array(
-                'id'          => 'extensions',
-                'type'        => 'optional',
-                'title'       => $fs->get_text_inline( 'Extensions', 'extensions' ),
-                'desc'        => '',
-                'permissions' => $optional_permissions,
             ),
         );
     } else {

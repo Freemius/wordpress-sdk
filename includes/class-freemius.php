@@ -3258,38 +3258,6 @@
         }
 
         /**
-         * Get collection of all site active plugins for a specified blog.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  2.0.0
-         *
-         * @param int $blog_id
-         *
-         * @return array[string]array
-         */
-        private static function get_site_active_plugins( $blog_id = 0 ) {
-            $active_basenames = ( is_multisite() && $blog_id > 0 ) ?
-                get_blog_option( $blog_id, 'active_plugins' ) :
-                get_option( 'active_plugins' );
-
-            $active = array();
-
-            if ( ! is_array( $active_basenames ) ) {
-                return $active;
-            }
-
-            foreach ( $active_basenames as $basename ) {
-                $active[ $basename ] = array(
-                    'is_active' => true,
-                    'Version'   => '1.0', // Dummy version.
-                    'slug'      => self::get_plugin_slug( $basename ),
-                );
-            }
-
-            return $active;
-        }
-
-        /**
          * Get collection of all plugins with their activation status for a specified blog.
          *
          * @author Vova Feldman (@svovaf)
@@ -3315,40 +3283,6 @@
 
             // Flag active plugins.
             foreach ( $active_plugins_basenames as $basename ) {
-                if ( isset( $all_plugins[ $basename ] ) ) {
-                    $all_plugins[ $basename ]['is_active'] = true;
-                }
-            }
-
-            return $all_plugins;
-        }
-
-        /**
-         * Get collection of all plugins and if they are network level activated.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  2.0.0
-         *
-         * @return array Key is the plugin basename and the value is an array of the plugin data.
-         */
-        private static function get_network_plugins() {
-            self::require_plugin_essentials();
-
-            $all_plugins = fs_get_plugins();
-
-            $network_active_basenames = is_multisite() ?
-                get_site_option( 'active_sitewide_plugins' ) :
-                array();
-
-            foreach ( $all_plugins as $basename => &$data ) {
-                // By default set to inactive (next foreach update the active plugins).
-                $data['is_active'] = false;
-                // Enrich with plugin slug.
-                $data['slug'] = self::get_plugin_slug( $basename );
-            }
-
-            // Flag active plugins.
-            foreach ( $network_active_basenames as $basename ) {
                 if ( isset( $all_plugins[ $basename ] ) ) {
                     $all_plugins[ $basename ]['is_active'] = true;
                 }
@@ -4917,19 +4851,6 @@
 
             if ( ! empty( $api_managed_permissions ) ) {
                 $has_site_delegated_connection = false;
-
-                if (
-                    ! $is_enabled &&
-                    ! in_array( FS_Permission_Manager::PERMISSION_EXTENSIONS, $api_managed_permissions ) &&
-                    false === FS_Permission_Manager::instance( $this )->is_extensions_tracking_allowed( $blog_id )
-                ) {
-                    /**
-                     * If we are turning off a permission and the extensions permission is off too, enrich the permissions update request to also turn off extensions tracking, as currently when opting in with extensions tracking disabled the extensions tracking is off but the API isn't aware of it.
-                     *
-                     * @todo Remove this entire `if` after implementing granular opt-in that also sends the permissions to the API when opting in.
-                     */
-                    $api_managed_permissions[] = FS_Permission_Manager::PERMISSION_EXTENSIONS;
-                }
 
                 if ( is_null( $blog_id ) && fs_is_network_admin() ) {
                     $result = $this->update_network_permissions(
@@ -8546,7 +8467,6 @@
                 'essentials' => true,
                 'events'     => true,
                 'diagnostic' => false,
-                'extensions' => false,
                 'site'       => false,
             ) );
         }
@@ -8680,400 +8600,24 @@
         }
 
         /**
-         * Generate an MD5 signature of a plugins collection.
-         * This helper methods used to identify changes in a plugins collection.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  2.0.0
-         *
-         * @param array [string]array $plugins
-         *
-         * @return string
-         */
-        private function get_plugins_thumbprint( $plugins ) {
-            ksort( $plugins );
-
-            $thumbprint = '';
-            foreach ( $plugins as $basename => $data ) {
-                $thumbprint .= $data['slug'] . ',' .
-                               $data['Version'] . ',' .
-                               ( $data['is_active'] ? '1' : '0' ) . ';';
-            }
-
-            return md5( $thumbprint );
-        }
-
-        /**
-         * Return a list of modified plugins since the last sync.
-         *
-         * Note:
-         *  There's no point to store a plugins counter since even if the number of
-         *  plugins didn't change, we still need to check if the versions are all the
-         *  same and the activity state is similar.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.1.8
-         *
-         * @return array|false
-         */
-        private function get_plugins_data_for_api() {
-            // Alias.
-            $site_active_plugins_option_name = 'active_plugins';
-            $network_plugins_option_name     = 'all_plugins';
-
-            /**
-             * Collection of all site level active plugins.
-             */
-            $site_active_plugins_cache = self::$_accounts->get_option( $site_active_plugins_option_name );
-
-            if ( ! is_object( $site_active_plugins_cache ) ) {
-                $site_active_plugins_cache = (object) array(
-                    'timestamp' => '',
-                    'md5'       => '',
-                    'plugins'   => array(),
-                );
-            }
-
-            $time = time();
-
-            if ( ! empty( $site_active_plugins_cache->timestamp ) &&
-                 ( $time - $site_active_plugins_cache->timestamp ) < WP_FS__TIME_5_MIN_IN_SEC
-            ) {
-                // Don't send plugin updates if last update was in the past 5 min.
-                return false;
-            }
-
-            // Write timestamp to lock the logic.
-            $site_active_plugins_cache->timestamp = $time;
-            self::$_accounts->set_option( $site_active_plugins_option_name, $site_active_plugins_cache, true );
-
-            // Reload options from DB.
-            self::$_accounts->load( true );
-            $site_active_plugins_cache = self::$_accounts->get_option( $site_active_plugins_option_name );
-
-            if ( $time != $site_active_plugins_cache->timestamp ) {
-                // If timestamp is different, then another thread captured the lock.
-                return false;
-            }
-
-            /**
-             * Collection of all plugins (network level).
-             */
-            $network_plugins_cache = self::$_accounts->get_option( $network_plugins_option_name );
-
-            if ( ! is_object( $network_plugins_cache ) ) {
-                $network_plugins_cache = (object) array(
-                    'timestamp' => '',
-                    'md5'       => '',
-                    'plugins'   => array(),
-                );
-            }
-
-            // Check if there's a change in plugins.
-            $network_plugins     = self::get_network_plugins();
-            $site_active_plugins = self::get_site_active_plugins();
-
-            $network_plugins_thumbprint     = $this->get_plugins_thumbprint( $network_plugins );
-            $site_active_plugins_thumbprint = $this->get_plugins_thumbprint( $site_active_plugins );
-
-            // Check if plugins status changed (version or active/inactive).
-            $network_plugins_changed     = ( $network_plugins_cache->md5 !== $network_plugins_thumbprint );
-            $site_active_plugins_changed = ( $site_active_plugins_cache->md5 !== $site_active_plugins_thumbprint );
-
-            if ( ! $network_plugins_changed &&
-                 ! $site_active_plugins_changed
-            ) {
-                // No changes.
-                return array();
-            }
-
-            $plugins_update_data = array();
-
-            foreach ( $network_plugins_cache->plugins as $basename => $data ) {
-                if ( ! isset( $network_plugins[ $basename ] ) ) {
-                    // Plugin uninstalled.
-                    $uninstalled_plugin_data                   = $data;
-                    $uninstalled_plugin_data['is_active']      = false;
-                    $uninstalled_plugin_data['is_uninstalled'] = true;
-                    $plugins_update_data[]                     = $uninstalled_plugin_data;
-
-                    unset( $network_plugins[ $basename ] );
-
-                    unset( $network_plugins_cache->plugins[ $basename ] );
-                    unset( $site_active_plugins_cache->plugins[ $basename ] );
-
-                    continue;
-                }
-
-                $was_active = $data['is_active'] ||
-                              ( isset( $site_active_plugins_cache->plugins[ $basename ] ) &&
-                                true === $site_active_plugins_cache->plugins[ $basename ]['is_active'] );
-                $is_active  = $network_plugins[ $basename ]['is_active'] ||
-                              ( isset( $site_active_plugins[ $basename ] ) &&
-                                $site_active_plugins[ $basename ]['is_active'] );
-
-                if ( ! isset( $site_active_plugins_cache->plugins[ $basename ] ) &&
-                     isset( $site_active_plugins[ $basename ] )
-                ) {
-                    // Plugin was site level activated.
-                    $site_active_plugins_cache->plugins[ $basename ] = array(
-                        'slug'           => $network_plugins[ $basename ]['slug'],
-                        'version'        => $network_plugins[ $basename ]['Version'],
-                        'title'          => $network_plugins[ $basename ]['Name'],
-                        'is_active'      => $is_active,
-                        'is_uninstalled' => false,
-                    );
-                } else if ( isset( $site_active_plugins_cache->plugins[ $basename ] ) &&
-                            ! isset( $site_active_plugins[ $basename ] )
-                ) {
-                    // Plugin was site level deactivated.
-                    unset( $site_active_plugins_cache->plugins[ $basename ] );
-                }
-
-                $prev_version    = $data['version'];
-                $current_version = $network_plugins[ $basename ]['Version'];
-
-                if ( $was_active !== $is_active || $prev_version !== $current_version ) {
-                    // Plugin activated or deactivated, or version changed.
-
-                    if ( $was_active !== $is_active ) {
-                        if ( $data['is_active'] != $network_plugins[ $basename ]['is_active'] ) {
-                            $network_plugins_cache->plugins[ $basename ]['is_active'] = $data['is_active'];
-                        }
-                    }
-
-                    if ( $prev_version !== $current_version ) {
-                        $network_plugins_cache->plugins[ $basename ]['Version'] = $current_version;
-                    }
-
-                    $updated_plugin_data              = $data;
-                    $updated_plugin_data['is_active'] = $is_active;
-                    $updated_plugin_data['version']   = $current_version;
-                    $updated_plugin_data['title']     = $network_plugins[ $basename ]['Name'];
-                    $plugins_update_data[]            = $updated_plugin_data;
-                }
-            }
-
-            // Find new plugins that weren't yet seen before.
-            foreach ( $network_plugins as $basename => $data ) {
-                if ( ! isset( $network_plugins_cache->plugins[ $basename ] ) ) {
-                    // New plugin.
-                    $new_plugin = array(
-                        'slug'           => $data['slug'],
-                        'version'        => $data['Version'],
-                        'title'          => $data['Name'],
-                        'is_active'      => $data['is_active'],
-                        'is_uninstalled' => false,
-                    );
-
-                    $network_plugins_cache->plugins[ $basename ] = $new_plugin;
-
-                    $is_site_level_active = (
-                        isset( $site_active_plugins[ $basename ] ) &&
-                        $site_active_plugins[ $basename ]['is_active']
-                    );
-
-                    /**
-                     * If not network active, set the activity status based on the site-level plugin status.
-                     */
-                    if ( ! $new_plugin['is_active'] ) {
-                        $new_plugin['is_active'] = $is_site_level_active;
-                    }
-
-                    $plugins_update_data[] = $new_plugin;
-
-                    if ( isset( $site_active_plugins[ $basename ] ) ) {
-                        $site_active_plugins_cache->plugins[ $basename ]              = $new_plugin;
-                        $site_active_plugins_cache->plugins[ $basename ]['is_active'] = $is_site_level_active;
-                    }
-                }
-            }
-
-            $site_active_plugins_cache->md5       = $site_active_plugins_thumbprint;
-            $site_active_plugins_cache->timestamp = $time;
-            self::$_accounts->set_option( $site_active_plugins_option_name, $site_active_plugins_cache, true );
-
-            $network_plugins_cache->md5       = $network_plugins_thumbprint;
-            $network_plugins_cache->timestamp = $time;
-            self::$_accounts->set_option( $network_plugins_option_name, $network_plugins_cache, true );
-
-            return $plugins_update_data;
-        }
-
-        /**
-         * Return a list of modified themes since the last sync.
-         *
-         * Note:
-         *  There's no point to store a themes counter since even if the number of
-         *  themes didn't change, we still need to check if the versions are all the
-         *  same and the activity state is similar.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.1.8
-         *
-         * @return array|false
-         */
-        private function get_themes_data_for_api() {
-            // Alias.
-            $option_name = 'all_themes';
-
-            $all_cached_themes = self::$_accounts->get_option( $option_name );
-
-            if ( ! is_object( $all_cached_themes ) ) {
-                $all_cached_themes = (object) array(
-                    'timestamp' => '',
-                    'md5'       => '',
-                    'themes'    => array(),
-                );
-            }
-
-            $time = time();
-
-            if ( ! empty( $all_cached_themes->timestamp ) &&
-                 ( $time - $all_cached_themes->timestamp ) < WP_FS__TIME_5_MIN_IN_SEC
-            ) {
-                // Don't send theme updates if last update was in the past 5 min.
-                return false;
-            }
-
-            // Write timestamp to lock the logic.
-            $all_cached_themes->timestamp = $time;
-            self::$_accounts->set_option( $option_name, $all_cached_themes, true );
-
-            // Reload options from DB.
-            self::$_accounts->load( true );
-            $all_cached_themes = self::$_accounts->get_option( $option_name );
-
-            if ( $time != $all_cached_themes->timestamp ) {
-                // If timestamp is different, then another thread captured the lock.
-                return false;
-            }
-
-            // Get active theme.
-            $active_theme            = wp_get_theme();
-            $active_theme_stylesheet = $active_theme->get_stylesheet();
-
-            // Check if there's a change in themes.
-            $all_themes = wp_get_themes();
-
-            // Check if themes changed.
-            ksort( $all_themes );
-
-            $themes_signature = '';
-            foreach ( $all_themes as $slug => $data ) {
-                $is_active = ( $slug === $active_theme_stylesheet );
-                $themes_signature .= $slug . ',' .
-                                     $data->version . ',' .
-                                     ( $is_active ? '1' : '0' ) . ';';
-            }
-
-            // Check if themes status changed (version or active/inactive).
-            $themes_changed = ( $all_cached_themes->md5 !== md5( $themes_signature ) );
-
-            $themes_update_data = array();
-
-            if ( $themes_changed ) {
-                // Change in themes, report changes.
-
-                // Update existing themes info.
-                foreach ( $all_cached_themes->themes as $slug => $data ) {
-                    $is_active = ( $slug === $active_theme_stylesheet );
-
-                    if ( ! isset( $all_themes[ $slug ] ) ) {
-                        // Plugin uninstalled.
-                        $uninstalled_theme_data                   = $data;
-                        $uninstalled_theme_data['is_active']      = false;
-                        $uninstalled_theme_data['is_uninstalled'] = true;
-                        $themes_update_data[]                     = $uninstalled_theme_data;
-
-                        unset( $all_themes[ $slug ] );
-                        unset( $all_cached_themes->themes[ $slug ] );
-                    } else if ( $data['is_active'] !== $is_active ||
-                                $data['version'] !== $all_themes[ $slug ]->version
-                    ) {
-                        // Plugin activated or deactivated, or version changed.
-
-                        $all_cached_themes->themes[ $slug ]['is_active'] = $is_active;
-                        $all_cached_themes->themes[ $slug ]['version']   = $all_themes[ $slug ]->version;
-
-                        $themes_update_data[] = $all_cached_themes->themes[ $slug ];
-                    }
-                }
-
-                // Find new themes that weren't yet seen before.
-                foreach ( $all_themes as $slug => $data ) {
-                    if ( ! isset( $all_cached_themes->themes[ $slug ] ) ) {
-                        $is_active = ( $slug === $active_theme_stylesheet );
-
-                        // New plugin.
-                        $new_plugin = array(
-                            'slug'           => $slug,
-                            'version'        => $data->version,
-                            'title'          => $data->name,
-                            'is_active'      => $is_active,
-                            'is_uninstalled' => false,
-                        );
-
-                        $themes_update_data[]               = $new_plugin;
-                        $all_cached_themes->themes[ $slug ] = $new_plugin;
-                    }
-                }
-
-                $all_cached_themes->md5       = md5( $themes_signature );
-                $all_cached_themes->timestamp = time();
-                self::$_accounts->set_option( $option_name, $all_cached_themes, true );
-            }
-
-            return $themes_update_data;
-        }
-
-        /**
          * Get site data for API install request.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.1.2
+         *
+         * @since 1.1.2
          *
          * @param string[] $override
-         * @param bool     $include_plugins   Since 1.1.8 by default include plugin changes.
-         * @param bool     $include_themes    Since 1.1.8 by default include plugin changes.
          * @param bool     $include_blog_data Since 2.3.0 by default include the current blog's data (language, title, and URL).
          *
          * @return array
+         *
          */
         private function get_install_data_for_api(
             array $override,
-            $include_plugins = true,
-            $include_themes = true,
             $include_blog_data = true
         ) {
             // Alias.
             $permissions = FS_Permission_Manager::instance( $this );
-
-            if ( $permissions->is_extensions_tracking_allowed() ) {
-                if ( ! defined( 'WP_FS__TRACK_PLUGINS' ) || false !== WP_FS__TRACK_PLUGINS ) {
-                    /**
-                     * @since 1.1.8 Also send plugin updates.
-                     */
-                    if ( $include_plugins && ! isset( $override['plugins'] ) ) {
-                        $plugins = $this->get_plugins_data_for_api();
-                        if ( ! empty( $plugins ) ) {
-                            $override['plugins'] = $plugins;
-                        }
-                    }
-                }
-
-                if ( ! defined( 'WP_FS__TRACK_THEMES' ) || false !== WP_FS__TRACK_THEMES ) {
-                    /**
-                     * @since 1.1.8 Also send themes updates.
-                     */
-                    if ( $include_themes && ! isset( $override['themes'] ) ) {
-                        $themes = $this->get_themes_data_for_api();
-                        if ( ! empty( $themes ) ) {
-                            $override['themes'] = $themes;
-                        }
-                    }
-                }
-            }
 
             $versions = $this->get_versions();
 
@@ -9109,37 +8653,14 @@
          * @param string[] string           $override
          * @param bool     $only_diff
          * @param bool     $is_keepalive
-         * @param bool     $include_plugins Since 1.1.8 by default include plugin changes.
-         * @param bool     $include_themes  Since 1.1.8 by default include plugin changes.
          *
          * @return array
          */
         private function get_installs_data_for_api(
             array $override,
             $only_diff = false,
-            $is_keepalive = false,
-            $include_plugins = true,
-            $include_themes = true
+            $is_keepalive = false
         ) {
-            /**
-             * @since 1.1.8 Also send plugin updates.
-             */
-//            if ( $include_plugins && ! isset( $override['plugins'] ) ) {
-//                $plugins = $this->get_plugins_data_for_api();
-//                if ( ! empty( $plugins ) ) {
-//                    $override['plugins'] = $plugins;
-//                }
-//            }
-            /**
-             * @since 1.1.8 Also send themes updates.
-             */
-//            if ( $include_themes && ! isset( $override['themes'] ) ) {
-//                $themes = $this->get_themes_data_for_api();
-//                if ( ! empty( $themes ) ) {
-//                    $override['themes'] = $themes;
-//                }
-//            }
-
             // Common properties.
             $versions = $this->get_versions();
             $common   = array_merge( $versions, array(
@@ -9317,10 +8838,7 @@
                 } else {
                     $special[ $p ] = $v;
 
-                    if ( isset( $override[ $p ] ) ||
-                         'plugins' === $p ||
-                         'themes' === $p
-                    ) {
+                    if ( isset( $override[ $p ] ) ) {
                         $special_override = true;
                     }
                 }
@@ -13475,7 +12993,6 @@
                 fs_request_get( 'blog_id', null ),
                 fs_request_get( 'module_id', null, 'post' ),
                 fs_request_get( 'user_id', null ),
-                fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
                 fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ),
                 fs_request_get( 'license_owner_id', null )
             );
@@ -13656,7 +13173,6 @@
                 $plugin_id,
                 null,
                 null,
-                null,
                 $license_owner_id
             );
 
@@ -13732,10 +13248,8 @@
          * @param null|int    $blog_id
          * @param null|number $plugin_id
          * @param null|number $user_id
-         * @param bool|null   $is_extensions_tracking_allowed
          * @param bool|null   $is_diagnostic_tracking_allowed Since 2.5.0.2 to allow license activation with minimal data footprint.
          * @param null|number $license_owner_id
-         *
          *
          * @return array {
          *      @var bool   $success
@@ -13750,7 +13264,6 @@
             $blog_id = null,
             $plugin_id = null,
             $user_id = null,
-            $is_extensions_tracking_allowed = null,
             $is_diagnostic_tracking_allowed = null,
             $license_owner_id = null
         ) {
@@ -13774,7 +13287,6 @@
 
             FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
                 FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
-                FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
             ) );
 
             $error     = false;
@@ -17192,7 +16704,6 @@
 
             $params['is_disconnected']                = $is_disconnected;
             $params['format']                         = 'json';
-            $params['is_extensions_tracking_allowed'] = FS_Permission_Manager::instance( $this )->is_extensions_tracking_allowed();
             $params['is_diagnostic_tracking_allowed'] = FS_Permission_Manager::instance( $this )->is_diagnostic_tracking_allowed();
 
             $request = array(
@@ -17311,9 +16822,7 @@
                     ( isset( $decoded->is_marketing_allowed ) && ! is_null( $decoded->is_marketing_allowed ) ?
                         $decoded->is_marketing_allowed :
                         null ),
-                    ( isset( $decoded->is_extensions_tracking_allowed ) && ! is_null( $decoded->is_extensions_tracking_allowed ) ?
-                        $decoded->is_extensions_tracking_allowed :
-                        null ),
+                    null,
                     ( isset( $decoded->is_diagnostic_tracking_allowed ) && ! is_null( $decoded->is_diagnostic_tracking_allowed ) ?
                         $decoded->is_diagnostic_tracking_allowed :
                         null ),
@@ -17329,9 +16838,6 @@
                     $decoded->user_secret_key,
                     ( isset( $decoded->is_marketing_allowed ) && ! is_null( $decoded->is_marketing_allowed ) ?
                         $decoded->is_marketing_allowed :
-                        null ),
-                    ( isset( $decoded->is_extensions_tracking_allowed ) && ! is_null( $decoded->is_extensions_tracking_allowed ) ?
-                        $decoded->is_extensions_tracking_allowed :
                         null ),
                     ( isset( $decoded->is_diagnostic_tracking_allowed ) && ! is_null( $decoded->is_diagnostic_tracking_allowed ) ?
                         $decoded->is_diagnostic_tracking_allowed :
@@ -17569,7 +17075,6 @@
                             fs_request_get_raw( 'user_public_key' ),
                             fs_request_get_raw( 'user_secret_key' ),
                             fs_request_get_bool( 'is_marketing_allowed', null ),
-                            fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
                             fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ),
                             $pending_sites_info['blog_ids'],
                             $pending_sites_info['license_key'],
@@ -17581,7 +17086,7 @@
                             fs_request_get_raw( 'user_public_key' ),
                             fs_request_get_raw( 'user_secret_key' ),
                             fs_request_get_bool( 'is_marketing_allowed', null ),
-                            fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
+                            null,
                             fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ),
                             fs_request_get( 'install_id' ),
                             fs_request_get_raw( 'install_public_key' ),
@@ -17679,6 +17184,8 @@
          * @param bool      $redirect
          * @param bool      $auto_install                   Since 1.2.1.7 If `true` and setting up an account with a valid license, will redirect (or return a URL) to the account page with a special parameter to trigger the auto installation processes.
          *
+         * @note $is_extensions_tracking_allowed is ignored/deprecated, it may be removed in future versions.
+         *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
         public function install_with_new_user(
@@ -17731,7 +17238,6 @@
 
             FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
                 FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
-                FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
             ) );
 
             return $this->setup_account(
@@ -17746,13 +17252,13 @@
          * Install plugin with user.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  2.0.0
+         *
+         * @since 2.0.0
          *
          * @param number    $user_id
          * @param string    $user_public_key
          * @param string    $user_secret_key
          * @param bool|null $is_marketing_allowed
-         * @param bool|null $is_extensions_tracking_allowed Since 2.3.2
          * @param bool|null $is_diagnostic_tracking_allowed Since 2.5.0.2
          * @param array     $site_ids
          * @param bool      $license_key
@@ -17766,7 +17272,6 @@
             $user_public_key,
             $user_secret_key,
             $is_marketing_allowed,
-            $is_extensions_tracking_allowed,
             $is_diagnostic_tracking_allowed,
             $site_ids,
             $license_key = false,
@@ -17781,7 +17286,6 @@
 
             FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
                 FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
-                FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
             ) );
 
             $sites = array();
@@ -17796,13 +17300,13 @@
          * Multi-site install with a new user.
          *
          * @author Vova Feldman (@svovaf)
+         *
          * @since  2.0.0
          *
          * @param number    $user_id
          * @param string    $user_public_key
          * @param string    $user_secret_key
          * @param bool|null $is_marketing_allowed
-         * @param bool|null $is_extensions_tracking_allowed Since 2.3.2
          * @param bool|null $is_diagnostic_tracking_allowed Since 2.5.0.2
          * @param object[]  $installs
          * @param bool      $redirect
@@ -17815,7 +17319,6 @@
             $user_public_key,
             $user_secret_key,
             $is_marketing_allowed,
-            $is_extensions_tracking_allowed,
             $is_diagnostic_tracking_allowed,
             array $installs,
             $redirect = true,
@@ -17829,7 +17332,6 @@
 
             FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
                 FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
-                FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
             ) );
 
             $install_ids = array();
@@ -17959,7 +17461,6 @@
 
                 FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
                     FS_Permission_Manager::PERMISSION_DIAGNOSTIC => fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ),
-                    FS_Permission_Manager::PERMISSION_EXTENSIONS => fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
                 ) );
 
                 $this->install_with_current_user( $license_key );
@@ -18107,7 +17608,7 @@
                 $extra_install_params['sites'] = $sites;
             }
 
-            $args = $this->get_install_data_for_api( $extra_install_params, false, false );
+            $args = $this->get_install_data_for_api( $extra_install_params );
 
             // Install the plugin.
             $result = $this->get_api_user_scope_by_user( $user )->call(
@@ -18203,8 +17704,6 @@
 
             $params = $this->get_install_data_for_api(
                 $uid_param_to_override,
-                false,
-                false,
                 /**
                  * Do not include the data for the current blog if network-level opt-in since the call to `get_sites_for_network_level_optin`
                  * already includes the data for it.
@@ -18212,7 +17711,7 @@
                  * @author Leo Fajardo (@leorw)
                  * @since 2.3.0
                  */
-                ( true !== $network_level_or_blog_id )
+                (true !== $network_level_or_blog_id)
             );
 
             if ( true === $network_level_or_blog_id ) {
@@ -18420,7 +17919,7 @@
                 'post',
                 $parent_fs->get_install_data_for_api( array(
                     'uid' => $parent_fs->get_anonymous_id(),
-                ), false, false )
+                ) )
             );
 
             if ( isset( $parent_install->error ) ) {
