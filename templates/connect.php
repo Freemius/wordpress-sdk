@@ -369,7 +369,6 @@
 					<input type="hidden" name="fs_action"
 					       value="<?php echo esc_attr( $fs->get_unique_affix() . '_activate_existing' ) ?>">
 					<?php wp_nonce_field( $fs->get_unique_affix() . '_activate_existing' ) ?>
-					<input type="hidden" name="is_extensions_tracking_allowed" value="1">
 					<input type="hidden" name="is_diagnostic_tracking_allowed" value="1">
 					<button class="button button-primary" tabindex="1"
 					        type="submit"><?php echo esc_html( $button_label ) ?></button>
@@ -380,7 +379,6 @@
 					<?php foreach ( $optin_params as $name => $value ) : ?>
 						<input type="hidden" name="<?php echo esc_attr( $name ) ?>" value="<?php echo esc_attr( $value ) ?>">
 					<?php endforeach ?>
-					<input type="hidden" name="is_extensions_tracking_allowed" value="1">
                     <input type="hidden" name="is_diagnostic_tracking_allowed" value="1">
 					<button class="button button-primary" tabindex="1"
 					        type="submit"<?php if ( $require_license_key ) {
@@ -699,21 +697,10 @@
 		var ajaxOptin = ( requireLicenseKey || isNetworkActive );
 
 		$form.on('submit', function () {
-            var $extensionsPermission = $( '#fs_permission_extensions .fs-switch' ),
-                isExtensionsTrackingAllowed = ( $extensionsPermission.length > 0 ) ?
-                    $extensionsPermission.hasClass( 'fs-on' ) :
-                    null;
-
             var $diagnosticPermission = $( '#fs_permission_diagnostic .fs-switch' ),
                 isDiagnosticTrackingAllowed = ( $diagnosticPermission.length > 0 ) ?
                     $diagnosticPermission.hasClass( 'fs-on' ) :
                     null;
-
-            if ( null === isExtensionsTrackingAllowed ) {
-                $( 'input[name=is_extensions_tracking_allowed]' ).remove();
-            } else {
-                $( 'input[name=is_extensions_tracking_allowed]' ).val( isExtensionsTrackingAllowed ? 1 : 0 );
-            }
 
             // We are not showing switch to enable/disable diagnostic tracking while activating free version. So, don't remove hidden `is_diagnostic_tracking_allowed` element from DOM and change the value only if switch is available.
             if ( null !== isDiagnosticTrackingAllowed ) {
@@ -773,8 +760,6 @@
                         }
 
                         data.is_marketing_allowed = isMarketingAllowed;
-
-						data.is_extensions_tracking_allowed = isExtensionsTrackingAllowed;
 
 						data.is_diagnostic_tracking_allowed = isDiagnosticTrackingAllowed;
                     }
