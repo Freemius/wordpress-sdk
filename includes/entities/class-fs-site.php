@@ -202,7 +202,7 @@
                 // Vendasta
                 ( fs_ends_with( $subdomain, '.websitepro-staging.com' ) || fs_ends_with( $subdomain, '.websitepro.hosting' ) ) ||
                 // InstaWP
-                ( fs_ends_with( $subdomain, '.instawp.co' ) || fs_ends_with( $subdomain, '.instawp.link' ) || fs_ends_with( $subdomain, '.instawp.xyz' ) ) ||
+                ( fs_ends_with( $subdomain, '.instawp.co' ) || fs_ends_with( $subdomain, '.instawp.link' ) || fs_ends_with( $subdomain, '.instawp.xyz' ) || fs_ends_with( $subdomain, '.instawp.site' ) || fs_ends_with( $subdomain, '.instawp.dev' ) ) ||
                 // 10Web Hosting
                 ( fs_ends_with( $subdomain, '-dev.10web.site' ) || fs_ends_with( $subdomain, '-dev.10web.cloud' ) )
             );
@@ -223,6 +223,8 @@
                 'instawp.co',
                 'instawp.link',
                 'instawp.xyz',
+                'instawp.site',
+                'instawp.dev',
 
                 // TasteWP
                 'tastewp.com',
