@@ -23,7 +23,7 @@
     "dotenv": "^16.4.1",
     "fancy-log": "^2.0.0",
     "gettext-parser": "^7.0.1",
-    "gulp": "^4.0.2",
+    "gulp": "^5.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-esbuild": "^0.12.0",
     "gulp-livereload": "^4.0.2",
