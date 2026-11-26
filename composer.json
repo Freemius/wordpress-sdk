@@ -5,6 +5,7 @@
     "homepage": "https://freemius.com",
     "license": "GPL-3.0-only",
     "scripts": {
+        "test": "@php tests/freemius-site-plan-id.php",
         "phpcs": ["Composer\\Config::disableProcessTimeout", "phpcs -p -s --colors"],
         "phpcs:ci": ["Composer\\Config::disableProcessTimeout", "phpcs --standard=phpcompat.xml -p -s --colors"],
         "phpstan": "./vendor/bin/phpstan analyse phpstan.neon --memory-limit 2G",
