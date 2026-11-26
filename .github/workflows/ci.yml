@@ -39,6 +39,9 @@ jobs:
         run: |
           php --version
           composer --version
+      - name: Entity regression tests
+        run: composer test
+
       - name: PHP Static Analysis
         run: composer phpstan
 
